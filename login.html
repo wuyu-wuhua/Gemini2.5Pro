@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="loginTitle">登录 - Gemini 2.5 Pro</title>
+    <link rel="stylesheet" href="styles/main.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="images/制作网站图标.png">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: var(--background-color, #f0f0f0);
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: var(--shadow, 0 5px 15px rgba(0,0,0,0.1));
+            width: 100%;
+            max-width: 420px; /* Slightly wider for more buttons */
+            text-align: center;
+        }
+        .login-container h1 {
+            color: var(--primary-color, #4285f4);
+            margin-bottom: 25px;
+            font-size: 2rem;
+        }
+        .login-form input[type="text"],
+        .login-form input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px; /* Reduced margin */
+            border: 1px solid var(--border-color, #dadce0);
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        .login-form button,
+        .google-login-btn {
+            width: 100%;
+            padding: 12px;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, opacity 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .login-form button {
+            background-color: var(--primary-color, #4285f4);
+            margin-top: 5px; /* Space above traditional login button */
+            margin-bottom: 15px; /* Space below traditional login button */
+        }
+        .login-form button:hover {
+            background-color: var(--secondary-color, #34a853);
+        }
+        .google-login-btn {
+            /* background-color: #DB4437; */ /* Old Google Red */
+            background-color: #ffffff; /* White background */
+            color: #4285F4; /* Google Blue text */
+            border: 1px solid #dadce0; /* Standard Google border */
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15); /* Standard Google shadow */
+            margin-bottom: 20px; /* Space below Google button */
+        }
+        .google-login-btn:hover {
+            /* opacity: 0.9; */
+            background-color: #f8f9fa; /* Slightly off-white on hover */
+            box-shadow: 0 1px 3px 0 rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15); /* Enhanced shadow on hover */
+        }
+        .login-container .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: var(--light-text, #5f6368);
+            margin: 20px 0;
+            font-size: 0.9rem;
+        }
+        .login-container .separator::before,
+        .login-container .separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid var(--border-color, #dadce0);
+        }
+        .login-container .separator:not(:empty)::before {
+            margin-right: .5em;
+        }
+        .login-container .separator:not(:empty)::after {
+            margin-left: .5em;
+        }
+        .login-container .signup-link,
+        .login-container .back-link {
+            display: block;
+            color: var(--primary-color, #4285f4);
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+        .login-container .signup-link {
+             margin-top: 0px; /* Adjusted from 20px due to separator */
+             margin-bottom: 15px;
+        }
+        .login-container .back-link {
+            margin-top: 10px; /* Reduced space */
+        }
+        .login-container .signup-link:hover,
+        .login-container .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1 data-i18n="loginPageTitle">用户登录</h1>
+        <form class="login-form" id="loginForm">
+            <div>
+                <input type="text" id="username" name="username" placeholder="用户名/邮箱" data-i18n-placeholder="usernamePlaceholder" required>
+            </div>
+            <div>
+                <input type="password" id="password" name="password" placeholder="密码" data-i18n-placeholder="passwordPlaceholder" required>
+            </div>
+            <button type="submit" data-i18n="loginButtonText">登录</button>
+        </form>
+        
+        <button type="button" class="google-login-btn" id="googleLoginBtn">
+            <i class="fab fa-google"></i> <span data-i18n="continueWithGoogle">使用 Google 继续</span>
+        </button>
+
+        <div class="separator" data-i18n="orSeparator">或</div>
+
+        <a href="register.html" class="signup-link" data-i18n="createAccountPrompt">没有账户？立即注册</a>
+        <a href="index.html" class="back-link" data-i18n="backToHome">返回首页</a>
+    </div>
+
+    <script src="js/translations.js"></script>
+    <script>
+        // Apply translations if translations.js is loaded
+        function applyLoginPageTranslations() {
+            const currentLang = localStorage.getItem('language') || 'zh';
+            if (typeof translations !== 'undefined' && translations[currentLang]) {
+                const trans = translations[currentLang];
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (trans[key]) {
+                        // For buttons with icons, only set textContent of the span inside
+                        if (el.classList.contains('google-login-btn') && el.querySelector('span')) {
+                            el.querySelector('span').textContent = trans[key];
+                        } else {
+                            el.textContent = trans[key];
+                        }
+                    }
+                });
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    if (trans[key]) {
+                        el.placeholder = trans[key];
+                    }
+                });
+                const titleElement = document.querySelector('title');
+                if (titleElement) {
+                    const titleKey = titleElement.getAttribute('data-i18n');
+                    if (titleKey && trans[titleKey]) {
+                        document.title = trans[titleKey];
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            applyLoginPageTranslations();
+
+            // const loginForm = document.getElementById('loginForm');
+            // if (loginForm) { /* ... existing commented login logic ... */ }
+
+            const googleLoginBtn = document.getElementById('googleLoginBtn');
+            if (googleLoginBtn) {
+                googleLoginBtn.addEventListener('click', () => {
+                    // Redirect to backend endpoint to initiate Google OAuth flow
+                    window.location.href = 'http://localhost:3001/auth/google';
+                });
+            }
+        });
+    </script>
+</body>
+</html> 
