@@ -1,5 +1,5 @@
 # This is the name of your Pages project. It should match what's in the Cloudflare dashboard.
-name = "Gemini2.5Pro"
+name = "gemini2-5pro"
 
 # This tells Cloudflare Pages where your static site assets are.
 # Since your index.html, js/, styles/ are in the root of your repository and you don't have a separate build step for static assets,
@@ -9,14 +9,8 @@ pages_build_output_dir = "."
 # It's good practice to set a compatibility date. Use a recent one.
 compatibility_date = "2024-05-16" # You can update this to the current date
 
-# This section configures your Pages Functions.
-[[pages.functions]]
-# This specifies that Functions in the Pages project should use Node.js compatibility.
-# This is crucial for using Node.js built-in modules like 'path', 'crypto', 'http', etc.,
-# which are used by Express and its dependencies.
-compatibility_flags = [ "nodejs_compat" ]
-# If your functions were not in the default './functions' directory, you would specify it here, for example:
-# directory = "./my_functions_folder"
+# [[pages.functions]] block TEMPORARILY REMOVED to isolate parsing issues
+# We will add back the nodejs_compat configuration once the file is parsed correctly.
 
 # bindings = { YOUR_KV_NAMESPACE = { binding = "YOUR_KV_NAMESPACE" } } # 如果您使用KV等绑定，在这里取消注释并配置
 # nodejs_compat = true # 有些旧版本的Wrangler可能使用这种方式，但 flags 是目前推荐的 
