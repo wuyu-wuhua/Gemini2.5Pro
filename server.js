@@ -1,19 +1,19 @@
-import 'dotenv/config'; // **IMPORTANT: Ensures .env variables are loaded first**
+require('dotenv').config(); // **IMPORTANT: Ensures .env variables are loaded first**
 
 // DEBUG: Print environment variables to confirm they are loaded correctly
 console.log("DEBUG ENV: GOOGLE_CLIENT_ID =", process.env.GOOGLE_CLIENT_ID);
 console.log("DEBUG ENV: GOOGLE_CLIENT_SECRET =", process.env.GOOGLE_CLIENT_SECRET ? "Loaded (not empty)" : "NOT LOADED or EMPTY");
 
-import express from 'express';
-import OpenAI from 'openai'; // 1. 引入 OpenAI 模块
-import cors from 'cors'; // 引入 cors
-import axios from 'axios'; // <<<< ADDED for text-to-image
-import passport from 'passport'; // <<<< ADDED
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20'; // <<<< ADDED
-import session from 'express-session'; // <<<< ADDED
+const express = require('express');
+const OpenAI = require('openai'); // 1. 引入 OpenAI 模块
+const cors = require('cors'); // 引入 cors
+const axios = require('axios'); // <<<< ADDED for text-to-image
+const passport = require('passport'); // <<<< ADDED
+const GoogleStrategy = require('passport-google-oauth20').Strategy; // <<<< ADDED
+const session = require('express-session'); // <<<< ADDED
 
 // 使用 .env 文件中的 PORT，如果未定义则默认为 3001
-// const port = process.env.PORT || 3001; // port definition is not needed here if not listening
+const port = process.env.PORT || 3001;
 const app = express(); // Initialize Express app
 
 app.use(cors({
@@ -325,8 +325,7 @@ app.get('/logout', (req, res, next) => {
 
 // 3. 修改 /api/chat POST 路由以调用通义千问
 app.post('/api/chat', async (req, res) => {
-    // console.log(`后端 (${port}) 收到 /api/chat 的POST请求`); // port is not defined here
-    console.log(`后端收到 /api/chat 的POST请求`);
+    console.log(`后端 (${port}) 收到 /api/chat 的POST请求`); // 添加端口信息以便调试
     const userMessage = req.body.message;
 
     if (!userMessage) {
@@ -370,8 +369,7 @@ app.post('/api/chat', async (req, res) => {
 
 // === NEW: Text-to-Image API Route ===
 app.post('/api/generate-image', async (req, res) => {
-    // console.log(`后端 (${port}) 收到 /api/generate-image POST请求`); // port is not defined here
-    console.log(`后端收到 /api/generate-image POST请求`);
+    console.log(`后端 (${port}) 收到 /api/generate-image POST请求`);
     const { prompt, negative_prompt, size, n, seed, prompt_extend, watermark } = req.body;
 
     if (!prompt) {
@@ -454,8 +452,7 @@ app.post('/api/generate-image', async (req, res) => {
 });
 
 app.post('/api/analyze-image', async (req, res) => {
-    // console.log(`后端 (${port}) 收到 /api/analyze-image POST请求`); // port is not defined here
-    console.log(`后端收到 /api/analyze-image POST请求`);
+    console.log(`后端 (${port}) 收到 /api/analyze-image POST请求`);
     const { imageDataB64, userQuestion } = req.body; // 假设前端发送 Base64 图像数据和问题
 
     if (!imageDataB64) {
@@ -530,8 +527,7 @@ app.post('/api/analyze-image', async (req, res) => {
 
 // === NEW: Image Stylization API Route (now generic Image Edit) ===
 app.post('/api/image-edit', async (req, res) => { // Renamed route for clarity
-    // console.log(`后端 (${port}) 收到 /api/image-edit POST请求`); // port is not defined here
-    console.log(`后端收到 /api/image-edit POST请求`);
+    console.log(`后端 (${port}) 收到 /api/image-edit POST请求`);
     // Accept prompt under either name for backward compatibility or clarity
     const prompt = req.body.edit_prompt || req.body.style_prompt;
     const { base_image_data, edit_function, n, size } = req.body; // <<<< ADDED: size from req.body
@@ -619,4 +615,4 @@ app.post('/api/image-edit', async (req, res) => { // Renamed route for clarity
     }
 });
 
-export default app; // Changed from module.exports = app; 
+module.exports = app; 
