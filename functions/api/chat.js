@@ -1,13 +1,28 @@
         // functions/api/chat.js
         
+        import OpenAI from 'openai';
+
         // 临时：如果你还没有OpenAI的模块，先用这个模拟
         async function getDashScopeChatReply(userMessage, apiKey) {
             console.log(`[Cloudflare Function /api/chat] API Key available: ${!!apiKey}`);
-            // 在实际应用中，这里你会用 apiKey 和 baseURL 初始化 OpenAI 客户端
-            // const openai = new OpenAI({apiKey: apiKey, baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"});
-            // const completion = await openai.chat.completions.create({ ... });
-            // return completion.choices[0].message.content;
-            return `AI Mock Reply from Cloudflare Function to: "${userMessage}"`;
+            if (!apiKey) {
+                console.error("DASHSCOPE_API_KEY is not configured.");
+                return "AI service is not configured (API key missing).";
+            }
+            try {
+                const openai = new OpenAI({
+                    apiKey: apiKey,
+                    baseURL: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+                });
+                const completion = await openai.chat.completions.create({
+                    model: "qwen-turbo", // Using qwen-turbo as an example chat model
+                    messages: [{ role: "user", content: userMessage }],
+                });
+                return completion.choices[0].message.content;
+            } catch (error) {
+                console.error("Error calling DashScope API:", error);
+                return "AI service request failed.";
+            }
         }
 
         export async function onRequestPost(context) {
