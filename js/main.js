@@ -634,19 +634,9 @@ async function sendMessage() {
     }
     
     try {
-        let backendBaseUrl = 'http://localhost:3001'; // Default for local development
-
-        // When deployed on Cloudflare, Pages (frontend) and Functions (backend) run on the same domain.
-        // API calls should be relative paths like /api/chat, so backendBaseUrl should be empty or '/'.
-        if (window.location.hostname === 'erlinmall.com' || 
-            window.location.hostname === 'www.erlinmall.com' || 
-            window.location.hostname.endsWith('.pages.dev')) { // Added .pages.dev for Cloudflare previews
-            backendBaseUrl = ''; // API calls will be relative paths e.g., /api/chat
-        } else {
-            // Assuming local development if not on a known production/preview domain
-            backendBaseUrl = 'http://localhost:3001'; // Or your local backend port used by local_dev_server.js
-        }
-
+        const backendBaseUrl = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+            ? 'http://localhost:3001' 
+            : 'https://erlinmall.com';
         const fullEndpointUrl = `${backendBaseUrl}${endpoint}`;
         console.log("Attempting to fetch from:", fullEndpointUrl, "Payload:", JSON.stringify(payload).substring(0, 200) + "...");
 

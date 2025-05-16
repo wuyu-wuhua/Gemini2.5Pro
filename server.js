@@ -615,4 +615,25 @@ app.post('/api/image-edit', async (req, res) => { // Renamed route for clarity
     }
 });
 
-module.exports = app; 
+// 4. 启动服务器
+app.listen(port, () => {
+    console.log(`后端API服务正在 http://localhost:${port} 上运行`);
+    const siteUrl = process.env.NODE_ENV === 'production' ? 'https://erlinmall.com' : `http://localhost:3000`;
+    const apiUrl = process.env.NODE_ENV === 'production' ? 'https://erlinmall.com' : `http://localhost:${port}`;
+    console.log(`Production Site URL: https://erlinmall.com`);
+    console.log(`Development Site URL: http://localhost:3000`);
+    console.log(`API accessible (potentially via reverse proxy in prod) at path /api/* relative to site URL.`);
+    console.log(`Frontend should point API requests to: ${apiUrl}`);
+
+    if (!process.env.DASHSCOPE_API_KEY) {
+        console.warn("警告：环境变量 DASHSCOPE_API_KEY 未设置或为空。请确保 .env 文件已正确配置并加载。");
+    } else {
+        // 为了安全，不在生产日志中打印部分KEY，但可以确认它已加载
+        if (process.env.DASHSCOPE_API_KEY.startsWith("sk-")) {
+            console.log("DASHSCOPE_API_KEY 已成功加载 (sk-开头)。");
+        } else {
+            console.warn("警告：DASHSCOPE_API_KEY 可能不是有效的sk-密钥格式。");
+        }
+    }
+    console.log("提示：请确保在 .env 文件中配置 GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET 和 SESSION_SECRET 用于 Google OAuth 登录。");
+}); 
