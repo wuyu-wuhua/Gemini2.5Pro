@@ -26,6 +26,8 @@
         }
 
         export async function onRequestPost(context) {
+            console.log('Cloudflare context.env:', JSON.stringify(context.env));
+            console.log('DASHSCOPE_API_KEY from env:', context.env.DASHSCOPE_API_KEY);
             try {
                 // context.request 是标准的 Fetch API Request 对象
                 // context.env 包含环境变量
