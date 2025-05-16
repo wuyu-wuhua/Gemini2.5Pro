@@ -401,19 +401,28 @@ header {
 }
 
 .message {
-    display: flex; /* Ensures flex context for all messages */
-    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start; /* Align items to the top */
+    margin-bottom: 15px;
+    max-width: 85%; /* Messages don't take full width */
 }
 
-.user-message {
-    display: flex; /* Explicitly ensure flex display */
-    flex-direction: row-reverse; /* Key rule for user messages */
+.message.user-message {
+    flex-direction: row-reverse; /* Key for placing avatar on the right */
+    margin-left: auto; /* Align user messages to the right of the container */
+    /* .user-message specific styles from L408 if any should be preserved or merged */
 }
 
-/* More specific rule for user-sent image messages to ensure avatar is on the right */
+.message.ai-message {
+    flex-direction: row; /* Default, avatar on the left */
+    margin-right: auto; /* Align AI messages to the left of the container */
+     /* .ai-message specific styles from L594 if any should be preserved or merged */
+}
+
+/* Specific styling for user-uploaded images within a user message */
 .message.user-message.image-message-wrapper {
-    display: flex; /* Reinforce flex display */
-    flex-direction: row-reverse !important; /* Force row-reverse for user image wrappers */
+    /* Inherits flex-direction: row-reverse from .message.user-message */
+    /* Add any specific wrapper styles if needed, but general layout is handled by .message.user-message */
 }
 
 .avatar {
@@ -421,13 +430,17 @@ header {
     height: 40px;
     border-radius: 50%;
     overflow: hidden;
-    margin-right: 15px;
-    flex-shrink: 0;
+    flex-shrink: 0; /* Prevent avatar from shrinking */
 }
 
-.user-message .avatar {
+.message.user-message .avatar {
+    margin-left: 12px; /* Space between user's content and avatar (on the right) */
     margin-right: 0;
-    margin-left: 15px;
+}
+
+.message.ai-message .avatar {
+    margin-right: 12px; /* Space between AI's avatar (on the left) and content */
+    margin-left: 0;
 }
 
 .avatar img {
@@ -462,7 +475,6 @@ header {
     display: flex;
     padding: 15px 20px; /* Padding around input elements */
     background-color: white;
-    border-top: 1px solid var(--border-color);
     border-bottom-left-radius: 12px; /* Match container rounding */
     border-bottom-right-radius: 12px;/* Match container rounding */
 }
@@ -1295,7 +1307,6 @@ footer {
     display: flex;
     padding: 15px 20px; /* Padding around input elements */
     background-color: white;
-    border-top: 1px solid var(--border-color);
     border-bottom-left-radius: 12px; /* Match container rounding */
     border-bottom-right-radius: 12px;/* Match container rounding */
 }
@@ -1477,11 +1488,13 @@ body > footer {
 }
 
 /* Styles for user-uploaded images in chat */
+/* This rule seems to be for the container within the message content. */
+/* Ensure its parent .message.user-message handles the overall layout (avatar on right) */
 .message.user-message .image-result-container.user-uploaded-image-container {
     max-width: 300px; /* Or your preferred max width, e.g., 40%, 250px */
     /* max-height: 300px; */ /* Optional: also constrain max height */
-    margin-left: 0; /* Align with the start of the user message bubble */
-    margin-right: auto; /* Push other content (like text if any) to the right */
+    /* margin-left: 0; */ /* This might be overridden by flex properties of parent */
+    /* margin-right: auto; */ /* This might be overridden by flex properties of parent */
     border-radius: 8px; /* Match bubble style */
     overflow: hidden; /* Ensure image stays within rounded corners */
 }
@@ -1512,4 +1525,101 @@ body > footer {
 
 .login-button-style:hover {
     background-color: var(--secondary-color); /* Darker blue on hover */
+}
+
+
+#imageSizeSelect {
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    color: #333;
+    margin-top: 5px; /* Or adjust as per your layout */
+    /* Add other styles as needed */
+}
+
+/* Styles for Image Aspect Ratio Selector */
+.image-aspect-ratio-selector {
+    display: flex;
+    /* justify-content: space-around; */ /* Changed from space-around */
+    justify-content: center; /* Center the buttons */
+    gap: 10px; /* Space between buttons */
+    align-items: center;
+    padding: 10px 20px; /* Align padding with chat-input (horizontally) */
+    /* margin-bottom: 10px; */ /* Removed, as it's now above chat-input */
+    border-top: 1px solid var(--border-color); /* Add top border, similar to chat-input */
+    background-color: #fff; /* Match chat-input background */
+}
+
+.aspect-ratio-btn {
+    background-color: #ffffff; /* White background */
+    color: #333333; /* Darker text for better contrast on white */
+    border: 1px solid #dcdcdc; /* Slightly softer border */
+    padding: 6px 12px; /* Slightly reduced padding */
+    border-radius: 6px; /* Slightly smaller radius */
+    cursor: pointer;
+    font-size: 0.85em; /* Slightly smaller font */
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.aspect-ratio-btn:hover {
+    background-color: #f5f5f5;
+    border-color: #c0c0c0;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.aspect-ratio-btn.active {
+    background-color: var(--primary-color); /* Use primary color for active */
+    color: #ffffff;
+    border-color: var(--primary-color);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.chat-input {
+/* ... existing code ... */
+}
+
+/* Styles for Image Aspect Ratio Controls Container */
+#imageControlsContainer {
+    display: none; /* Controlled by JS */
+    flex-direction: column; 
+    align-items: center; 
+    padding: 10px 20px; /* Keep some padding for spacing */
+    background-color: #fff; 
+}
+
+/* Styles for Image Aspect Ratio Selector (the group of 5 buttons) */
+.image-aspect-ratio-selector {
+    display: flex; /* Should be flex by default when shown by JS */
+    align-items: center;
+    width: 100%; 
+    padding: 5px 0; 
+    /* position: relative; */ /* No longer needed for close button */
+}
+
+/* Container for the 5 aspect ratio buttons to center them and distribute */
+.aspect-ratio-buttons-wrapper {
+    display: flex;
+    /* justify-content: center; */ /* Changed to space-around */
+    justify-content: space-around; /* Distribute buttons evenly */
+    flex-grow: 1; 
+    gap: 8px; /* Keep small gap between buttons if space-around isn't enough */
+    width: 100%; /* Ensure wrapper takes full width */
+}
+
+.aspect-ratio-btn {
+    background-color: #ffffff; 
+    color: #333333; 
+    border: 1px solid #dcdcdc; 
+    padding: 6px 12px; 
+    border-radius: 6px; 
+    cursor: pointer;
+    font-size: 0.85em; 
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s;
+    flex-grow: 1; /* Allow buttons to grow and fill space with space-around */
+    text-align: center;
+}
+
+.chat-input {
+/* ... existing code ... */
 }

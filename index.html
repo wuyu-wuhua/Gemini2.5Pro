@@ -97,6 +97,22 @@
                                 </div>
                             </div>
                         </div>
+                        
+                        <!-- Main container for all image size controls -->
+                        <div id="imageControlsContainer" style="display: none;"> 
+                            <!-- <button id="imageSizeMasterBtn" class="master-aspect-ratio-toggle-btn">图片尺寸</button> NO LONGER NEEDED -->
+                            <div class="image-aspect-ratio-selector" style="display: flex;"> <!-- Ensure this is flex by default when parent is shown -->
+                                <div class="aspect-ratio-buttons-wrapper"> 
+                                    <button class="aspect-ratio-btn" data-ratio="1:1">1:1</button>
+                                    <button class="aspect-ratio-btn" data-ratio="4:3">4:3</button>
+                                    <button class="aspect-ratio-btn" data-ratio="3:4">3:4</button>
+                                    <button class="aspect-ratio-btn" data-ratio="16:9">16:9</button>
+                                    <button class="aspect-ratio-btn" data-ratio="9:16">9:16</button>
+                                </div> 
+                                <!-- <button id="closeAspectRatioOptionsBtn" class="close-options-btn">返回</button> NO LONGER NEEDED -->
+                            </div>
+                        </div>
+
                         <div class="chat-input">
                             <input type="file" id="imageUploadInput" accept="image/*" style="display: none;">
                             <button type="button" id="uploadImageBtn" class="chat-upload-btn" data-i18n-title="uploadImageTooltip">

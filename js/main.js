@@ -15,6 +15,9 @@ const sidebarContentHost = document.querySelector('.sidebar-content-host');
 const imagePreviewContainer = document.getElementById('imagePreviewContainer');
 const imagePreviewSrc = document.getElementById('imagePreviewSrc');
 const removeImagePreviewBtn = document.getElementById('removeImagePreviewBtn');
+const imageControlsContainer = document.getElementById('imageControlsContainer');
+const aspectRatioButtonsContainer = document.querySelector('.image-aspect-ratio-selector');
+const aspectRatioButtons = document.querySelectorAll('.aspect-ratio-btn');
 
 // 用户头像
 const userAvatar = 'https://placehold.co/40x40?text=U';
@@ -23,7 +26,20 @@ const userAvatar = 'https://placehold.co/40x40?text=U';
 let currentChatSessionMessages = [];
 let currentChatIsDirty = false; // Tracks if the current chat has unsaved user changes
 const MAX_HISTORY_ITEMS = 20; // Limit the number of history items
-let currentSelectedFile = null; // <<<< ADDED: To store the currently selected image file
+let currentSelectedFile = null;
+let isAspectRatioOptionsVisible = false;
+
+// <<<< ADDED: Aspect Ratio and Size Globals >>>>
+const aspectRatioToSizeMap = {
+    "1:1": "1024*1024",
+    "4:3": "1024*768",
+    "3:4": "768*1024",
+    "16:9": "1792*1024",
+    "9:16": "1024*1792"
+};
+const DEFAULT_ASPECT_RATIO = "1:1";
+let currentSelectedSizeForAPI = aspectRatioToSizeMap[DEFAULT_ASPECT_RATIO];
+// <<<< END ADDED GLOBALS >>>>
 
 // Define sub-prompts for each scenario
 const subPrompts = {
@@ -76,13 +92,16 @@ function clearImagePreview() {
         imagePreviewContainer.style.display = 'none';
     }
     if (imagePreviewSrc) {
-        imagePreviewSrc.src = '#'; // Reset src
+        imagePreviewSrc.src = '#';
     }
     const imageUploadInput = document.getElementById('imageUploadInput');
     if (imageUploadInput) {
-        imageUploadInput.value = ''; // Allow re-selection of the same file
+        imageUploadInput.value = '';
     }
     currentSelectedFile = null;
+    if (!userInput.value.trim().toLowerCase().match(/(生成|画|创作)/i)) {
+        hideImageControls();
+    }
     console.log("[ClearPreview] Image preview cleared.");
 }
 
@@ -367,221 +386,271 @@ function loadSpecificChat(sessionId) {
                 imageMessageDiv.appendChild(avatarDiv);
                 imageMessageDiv.appendChild(contentDiv);
                 chatMessages.appendChild(imageMessageDiv);
-            } else if (msg.type === 'user-image' && msg.url && msg.sender === 'user') { // User uploaded image from HISTORY
-                 const imageMessageDiv = document.createElement('div');
-                imageMessageDiv.className = 'message user-message image-message-wrapper'; // Ensure user-message is present
-                
-                // Content div MUST be first for user-message with row-reverse
+            } else if (msg.type === 'user-image' && msg.sender === 'user') { // User uploaded image from history
+                const imageMessageDiv = document.createElement('div');
+                imageMessageDiv.className = 'message user-message image-message-wrapper user-uploaded-image-display';
+
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'image-result-container user-uploaded-image-container';
-                const imgElement = document.createElement('img');
-                imgElement.src = msg.url; 
-                imgElement.alt = msg.originalName || '用户上传的图片';
-                imgElement.className = 'generated-image';
-                imgContainer.appendChild(imgElement);
-                contentDiv.appendChild(imgContainer);
 
-                // Avatar div MUST be second for user-message with row-reverse
+                if (msg.url === 'local-image-placeholder') {
+                    const fileNameP = document.createElement('p');
+                    fileNameP.textContent = `(上传的图片: ${msg.fileName || '未知文件'}) - 由于存储限制，历史记录中不直接显示图片。`;
+                    fileNameP.style.fontStyle = 'italic';
+                    fileNameP.style.fontSize = '0.9em';
+                    contentDiv.appendChild(fileNameP);
+                } else if (msg.url) { // Should ideally be a small thumbnail if we implement that
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'image-result-container user-uploaded-image-container'; 
+                    const imgElement = document.createElement('img');
+                    imgElement.src = msg.url; 
+                    imgElement.alt = msg.fileName || 'User uploaded image';
+                    imgElement.className = 'generated-image'; 
+                    imgContainer.appendChild(imgElement);
+                    contentDiv.appendChild(imgContainer);
+                } else {
+                     const errorP = document.createElement('p');
+                    errorP.textContent = `(无法加载历史图片: ${msg.fileName || '未知文件'})`;
+                    contentDiv.appendChild(errorP);
+                }
+                
                 const avatarDiv = document.createElement('div');
                 avatarDiv.className = 'avatar';
-                const avatarImg = document.createElement('img');
-                avatarImg.src = userAvatar; 
-                avatarImg.alt = '用户';
-                avatarImg.onerror = function() { this.src = 'https://placehold.co/40x40?text=U'; };
-                avatarDiv.appendChild(avatarImg);
+                const avatarImgUser = document.createElement('img');
+                avatarImgUser.src = userAvatar; 
+                avatarImgUser.alt = '用户';
+                avatarImgUser.onerror = function() { this.src = 'https://placehold.co/40x40?text=U'; };
+                avatarDiv.appendChild(avatarImgUser);
                 
-                imageMessageDiv.appendChild(contentDiv); // Content first
-                imageMessageDiv.appendChild(avatarDiv);  // Avatar second (will appear right due to row-reverse)
+                imageMessageDiv.appendChild(avatarDiv); 
+                imageMessageDiv.appendChild(contentDiv); 
+
                 chatMessages.appendChild(imageMessageDiv);
 
-                // If there was accompanying text for this user-image in the original session,
-                // it would be a separate message object. The current structure assumes text and user-image are separate entries in history.
-                // This might need refinement if you want them grouped more tightly in history.
-            } else {
-                // Regular text message or other type
-                addMessage(msg.text, msg.sender, true, msg.optionalCssClass);
+            } else if (msg.sender && msg.text) { // Regular text message
+                addMessage(msg.text, msg.sender, true); // Pass true for isInitialOrHistory
             }
         });
-        chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to bottom after loading
-        // currentChatIsDirty is already false due to clearChat(false)
-        console.log(`[LoadChat] Loaded session ${sessionId}. Dirty flag is ${currentChatIsDirty}.`);
-        
-        // Highlight the active history item
-        document.querySelectorAll('.sidebar-content-host ul li').forEach(li => {
-            li.classList.remove('active-history');
-            li.style.backgroundColor = 'rgba(255, 255, 255, 0.05)'; // Reset others
-        });
-        const activeLi = document.querySelector(`.sidebar-content-host ul li[data-history-id="${sessionId}"]`);
-        if (activeLi) {
-            activeLi.classList.add('active-history');
-            activeLi.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'; // Highlight active
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        currentChatIsDirty = false; // Loaded session is not dirty initially
+        userInput.focus();
+        // Update title display or other UI elements if necessary
+        const sessionTitleElement = document.getElementById('chatSessionTitle'); // Assuming you have an element for this
+        if (sessionTitleElement) {
+            sessionTitleElement.textContent = sessionToLoad.title;
         }
-
     } else {
-        console.warn("Session not found:", sessionId);
+        console.warn("Attempted to load a non-existent session:", sessionId);
     }
 }
 
 // 清空聊天窗口
-function clearChat(saveIfNeeded = false) { // Renamed parameter, added logic
+function clearChat(saveIfNeeded = false) {
     if (saveIfNeeded && currentChatIsDirty && currentChatSessionMessages.length > 0) {
         console.log("[ClearChat] Dirty chat detected, saving before clearing.");
         saveCurrentChatToHistory(); // This will reset currentChatIsDirty to false
     } else {
         console.log(`[ClearChat] Not saving. saveIfNeeded: ${saveIfNeeded}, currentChatIsDirty: ${currentChatIsDirty}, message count: ${currentChatSessionMessages.length}`);
     }
-    chatMessages.innerHTML = ''; // 清空聊天记录显示
-    currentChatSessionMessages = []; // 重置当前会话消息数组
-    currentChatIsDirty = false; // Always reset dirty flag when chat is cleared
-    clearImagePreview(); // <<<< ADDED: Clear image preview when chat is cleared
+    chatMessages.innerHTML = '';
+    currentChatSessionMessages = [];
+    currentChatIsDirty = false;
+    clearImagePreview();
+    hideImageControls();
     console.log("[ClearChat] Chat cleared. Dirty flag reset.");
 }
 
-// 发送消息的函数 (核心修改在此)
+// 发送消息的函数 (core logic changes for control visibility)
 async function sendMessage() {
-    let isImageRequest = false; // <<<< ADDED: Initialize isImageRequest
+    let isImageRequest = false;
     const messageText = userInput.value.trim();
-    const localSelectedFile = currentSelectedFile; // Capture currentSelectedFile locally for this send operation
-    const localSelectedFileDataUrl = imagePreviewSrc.src; // Capture the data URL from preview
+    let selectedImageSizeForPayload = null;
 
-    if (!messageText && !localSelectedFile) {
-        console.log("No text and no image selected. Not sending.");
-        return;
+    let localSelectedFileForSend = currentSelectedFile; 
+    let localSelectedFileDataUrlForSend = null;
+
+    if (localSelectedFileForSend && imagePreviewContainer.style.display !== 'none' && imagePreviewSrc.src.startsWith('data:image')) {
+        localSelectedFileDataUrlForSend = imagePreviewSrc.src;
     }
 
-    // --- Display user's message (text and/or image) ---
-    let userMessageContentForHistory = [];
+    if (!messageText && !localSelectedFileForSend) {
+        console.log("No message text or selected file to send.");
+        return;
+    }
+    
+    const userMessagePartsForHistory = [];
 
-    if (localSelectedFile && localSelectedFileDataUrl !== '#' && localSelectedFileDataUrl.startsWith('data:image')) {
-        // Create and display the image message from the user
+    if (localSelectedFileForSend && localSelectedFileDataUrlForSend) {
         const imageMessageDiv = document.createElement('div');
-        imageMessageDiv.className = 'message user-message image-message-wrapper'; // Ensure user-message is present
-
-        // Content div MUST be first for user-message with row-reverse
+        imageMessageDiv.className = 'message user-message image-message-wrapper user-uploaded-image-display';
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
         const imgContainer = document.createElement('div');
-        imgContainer.className = 'image-result-container user-uploaded-image-container'; 
+        imgContainer.className = 'image-result-container user-uploaded-image-container';
         const imgElement = document.createElement('img');
-        imgElement.src = localSelectedFileDataUrl; 
-        imgElement.alt = localSelectedFile.name;
-        imgElement.className = 'generated-image'; 
+        imgElement.src = localSelectedFileDataUrlForSend;
+        imgElement.alt = localSelectedFileForSend.name;
+        imgElement.className = 'generated-image';
         imgContainer.appendChild(imgElement);
         contentDiv.appendChild(imgContainer);
-        
-        // Avatar div MUST be second for user-message with row-reverse
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'avatar';
         const avatarImg = document.createElement('img');
-        avatarImg.src = userAvatar; 
+        avatarImg.src = userAvatar;
         avatarImg.alt = '用户';
         avatarImg.onerror = function() { this.src = 'https://placehold.co/40x40?text=U'; };
         avatarDiv.appendChild(avatarImg);
-        
-        imageMessageDiv.appendChild(contentDiv);  // Content first
-        imageMessageDiv.appendChild(avatarDiv);   // Avatar second (will appear right due to row-reverse)
+        imageMessageDiv.appendChild(avatarDiv);
+        imageMessageDiv.appendChild(contentDiv);
         chatMessages.appendChild(imageMessageDiv);
-
-        userMessageContentForHistory.push({
-            text: `[用户上传图片: ${localSelectedFile.name}]`,
-            type: 'user-image', // Distinguish from AI image
-            url: localSelectedFileDataUrl, // Store Data URL
-            originalName: localSelectedFile.name,
+        userMessagePartsForHistory.push({
+            type: 'user-image',
+            url: 'local-image-placeholder',
+            fileName: localSelectedFileForSend.name,
             sender: 'user',
             timestamp: new Date().toISOString()
         });
     }
 
     if (messageText) {
-        addMessage(messageText, 'user'); // This function already pushes to currentChatSessionMessages
-        // If an image was also sent, the text was already added by addMessage.
-        // If only text, this is the primary user content.
-        // If image and text, addMessage handles the text part for history,
-        // we already handled the image part above for history.
-        // So, if only image and no text, the userMessageContentForHistory from image part is enough.
-        // If only text, currentChatSessionMessages is handled by addMessage.
-        // If both, both are handled.
-    } else if (localSelectedFile && userMessageContentForHistory.length > 0) {
-        // Only an image was "sent" by the user, push its representation to history
-        currentChatSessionMessages.push(...userMessageContentForHistory);
-        currentChatIsDirty = true; // Mark as dirty if only image
+        addMessage(messageText, 'user');
+        if (localSelectedFileForSend && localSelectedFileDataUrlForSend) {
+            userMessagePartsForHistory.push({
+                text: messageText,
+                sender: 'user',
+                timestamp: new Date().toISOString()
+            });
+        }
+    }
+    
+    if (userMessagePartsForHistory.length > 0) {
+        currentChatSessionMessages.push(...userMessagePartsForHistory);
+        currentChatIsDirty = true;
+    } else if (messageText && !localSelectedFileForSend) {
+        // addMessage would have handled pushing to currentChatSessionMessages and setting dirty flag.
     }
 
-    userInput.value = ''; // Clear input field
-    clearImagePreview(); // Clear preview immediately after capturing its state
-
-    // 显示"思考中"
+    userInput.value = '';
     const thinkingMessageDiv = addMessage('AI正在思考中...', 'ai', false, 'thinking-message');
 
     let endpoint;
-    let payload = {}; // Initialize payload as an object
+    let payload = {};
+    let operationFailed = false; 
+    let operationAllowsSizeSelection = false;
 
-    // --- Determine endpoint and payload ---
-    const imageKeywords = ["生成", "画", "创作"];
-    
-    // Attach image data if a local file was selected for this send operation
-    if (localSelectedFile) {
-        // For now, we're sending the Data URL.
-        // In a real scenario with backend processing, you'd likely send FormData with the File object.
-        payload.imageData = localSelectedFileDataUrl; // Placeholder for backend to receive image
-        payload.imageName = localSelectedFile.name;
-        console.log("Image data (DataURL) included in payload for backend (placeholder).");
-    }
+    if (localSelectedFileForSend && localSelectedFileDataUrlForSend) { // User uploaded an image
+        isImageRequest = true;
+        operationAllowsSizeSelection = true; // Image edit usually allows size selection
+        
+        if (messageText) {
+            const analysisKeywords = ["分析", "描述这张图", "describe this image", "解读这张图片", "这是什么", "what is this", "看看这张图", "它的提示词是什么", "what's its prompt", "咒语是什么", "反向提示词"];
+            let isAnalysis = analysisKeywords.some(k => messageText.toLowerCase().includes(k.toLowerCase()));
 
-    if (messageText && imageKeywords.some(keyword => messageText.toLowerCase().includes(keyword.toLowerCase())) && !localSelectedFile) {
-        isImageRequest = true; // This is for AI text-to-image
+            if (isAnalysis) {
+                endpoint = '/api/analyze-image';
+                payload.imageDataB64 = localSelectedFileDataUrlForSend;
+                payload.userQuestion = messageText;
+                operationAllowsSizeSelection = false; // Analysis doesn't use size selection
+                console.log(`Image Analysis request (with text): ${endpoint}`);
+            } else {
+                selectedImageSizeForPayload = currentSelectedSizeForAPI;
+                const stylizationPrefixes = ["风格化：", "style:", "全局风格：", "整体风格："];
+                const stylizationKeywordsInText = ["风格", "style"];
+                let isStylization = false;
+                let editPromptForApi = messageText;
+
+                for (const prefix of stylizationPrefixes) {
+                    if (messageText.toLowerCase().startsWith(prefix.toLowerCase())) {
+                        isStylization = true;
+                        editPromptForApi = messageText.substring(prefix.length).trim();
+                        break;
+                    }
+                }
+                if (!isStylization && stylizationKeywordsInText.some(k => messageText.toLowerCase().includes(k.toLowerCase()))) {
+                    isStylization = true;
+                }
+
+                if (isStylization) {
+                    endpoint = '/api/image-edit';
+                    payload.base_image_data = localSelectedFileDataUrlForSend;
+                    payload.edit_prompt = editPromptForApi;
+                    payload.edit_function = "stylization_all";
+                } else {
+                    endpoint = '/api/image-edit';
+                    payload.base_image_data = localSelectedFileDataUrlForSend;
+                    payload.edit_prompt = messageText;
+                    payload.edit_function = "description_edit";
+                }
+                payload.n = 1;
+                if (selectedImageSizeForPayload) payload.size = selectedImageSizeForPayload;
+                console.log(`Image Edit (${payload.edit_function}) size: ${payload.size || 'default'}`);
+            }
+        } else { // Image uploaded, but no accompanying text -> analyze
+            endpoint = '/api/analyze-image';
+            payload.imageDataB64 = localSelectedFileDataUrlForSend;
+            payload.userQuestion = "请详细描述这张图片的内容和特点。";
+            operationAllowsSizeSelection = false; // Analysis doesn't use size selection
+            console.log(`Image Analysis request (no text): ${endpoint}`);
+        }
+    } else if (messageText && messageText.toLowerCase().match(/(生成|画|创作)/i) && 
+               !messageText.toLowerCase().match(/\b(分析|描述|解读|这是什么|看看|提示词|咒语|风格化：|style:|全局风格：|整体风格：|编辑|修改)\b/i) ) {
+        isImageRequest = true; 
+        operationAllowsSizeSelection = true;
+        selectedImageSizeForPayload = currentSelectedSizeForAPI; 
         endpoint = '/api/generate-image';
         payload.prompt = messageText;
-        payload.size = "1024*1024";
+        payload.size = selectedImageSizeForPayload;
         payload.n = 1;
-        console.log("Text-to-image generation request to:", endpoint, "with payload:", payload);
-    } else if (messageText) { // If there's text, it's a chat (possibly with image context)
+        console.log(`Text-to-image generation request, size: ${payload.size}`);
+    } else if (messageText) { // Standard text chat
+        isImageRequest = false;
+        operationAllowsSizeSelection = false;
         endpoint = '/api/chat';
-        payload.message = messageText; // Add text message to payload
-        if (localSelectedFile) {
-            console.log("Chat request WITH IMAGE to:", endpoint, "with payload:", payload);
-        } else {
-            console.log("Standard text chat request to:", endpoint, "with payload:", payload);
-        }
-    } else if (localSelectedFile && !messageText) {
-        // Only image, no text. What should happen?
-        // Option 1: Send to a specific image analysis endpoint (e.g., /api/analyze-image)
-        // Option 2: For now, treat as an error or not-yet-supported action for API call.
-        // We already displayed the user's image. Let's simulate an AI saying it can't process image-only yet.
-        if (thinkingMessageDiv && thinkingMessageDiv.parentNode) {
-            thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
-        }
-        addMessage("我当前还不能单独处理图片哦，请告诉我你想对这张图片做什么，或者输入一些文字指令。", 'ai', false, 'info-message');
-        // currentChatSessionMessages.push({ text: "我当前还不能单独处理图片哦...", sender: 'ai', ... }); // Add to history
-        // saveCurrentChatToHistory(); // Save this interaction
-        // displayChatHistoryList();
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-        return; // Stop further API call for now
+        payload.message = messageText;
+        console.log("Standard text chat request to:", endpoint);
     } else {
-        // Should not happen due to initial check, but as a fallback:
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
+        console.log("No valid action determined.");
+        hideImageControls(); 
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        return;
+        return; 
     }
 
+    // Manage visibility of the main image controls container
+    if (operationAllowsSizeSelection) {
+        showImageControls();
+    } else {
+        hideImageControls();
+    }
+    
+    // Clear preview if image data was used (after data is in payload and controls visibility decided)
+    if (localSelectedFileForSend) { // If an image was involved in this send operation
+        clearImagePreview(); 
+        // clearImagePreview now conditionally hides controls, so check again
+        // if operation STILL allows size selection (e.g. T2I without prior image), ensure controls are shown
+        if (operationAllowsSizeSelection && endpoint === '/api/generate-image') {
+            showImageControls();
+        }
+    }
+    
     try {
-        const backendBaseUrl = 'http://localhost:3001'; 
+        const backendBaseUrl = (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") 
+            ? 'http://localhost:3001' 
+            : 'https://erlinmall.com';
         const fullEndpointUrl = `${backendBaseUrl}${endpoint}`;
         console.log("Attempting to fetch from:", fullEndpointUrl, "Payload:", JSON.stringify(payload).substring(0, 200) + "...");
 
         const response = await fetch(fullEndpointUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-            });
+        });
 
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) {
             thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
         }
 
-            if (!response.ok) {
+        if (!response.ok) {
             let errorData = {};
             try { errorData = await response.json(); } catch (e) { console.warn("Failed to parse error response as JSON:", e); }
             console.error('API request failed:', response.status, errorData);
@@ -591,12 +660,14 @@ async function sendMessage() {
             return;
         }
 
-                const data = await response.json();
+        const data = await response.json();
         console.log('Received data from backend:', data);
 
         // --- Handle AI Response ---
-        // (This part remains largely the same: handling AI text or AI generated image)
-        if (isImageRequest && data.results && data.results.length > 0) { // AI generated image
+        if (data.analysis) { 
+            addMessage(data.analysis, 'ai');
+            currentChatSessionMessages.push({ text: data.analysis, sender: 'ai', timestamp: new Date().toISOString() });
+        } else if (isImageRequest && data.results && data.results.length > 0 && (endpoint === '/api/image-edit' || endpoint === '/api/generate-image')) { 
             data.results.forEach(imgResult => {
                 if (imgResult.url) {
                     const imageMessageDivAI = document.createElement('div');
@@ -608,50 +679,53 @@ async function sendMessage() {
                     avatarImgAI.alt = 'Gemini';
                     avatarImgAI.onerror = function() { this.src = 'https://placehold.co/40x40?text=G'; };
                     avatarDivAI.appendChild(avatarImgAI);
-                    
                     const contentDivAI = document.createElement('div');
                     contentDivAI.className = 'message-content';
-                    
                     const imgContainerAI = document.createElement('div');
                     imgContainerAI.className = 'image-result-container';
                     const imgElementAI = document.createElement('img');
                     imgElementAI.src = imgResult.url;
-                    imgElementAI.alt = payload.prompt; 
+                    imgElementAI.alt = payload.prompt || payload.edit_prompt || (endpoint === '/api/generate-image' ? 'Generated image' : 'Edited image'); 
                     imgElementAI.className = 'generated-image';
                     imgContainerAI.appendChild(imgElementAI);
                     contentDivAI.appendChild(imgContainerAI);
-                    
                     imageMessageDivAI.appendChild(avatarDivAI);
                     imageMessageDivAI.appendChild(contentDivAI);
                     chatMessages.appendChild(imageMessageDivAI);
-                    currentChatSessionMessages.push({ text: `[Image: ${imgResult.url}]`, type: 'image', url: imgResult.url, sender: 'ai', timestamp: new Date().toISOString() });
+                    currentChatSessionMessages.push({ 
+                        text: `[Image: ${imgResult.url}]`, 
+                        type: 'image', 
+                        url: imgResult.url, 
+                        sender: 'ai', 
+                        timestamp: new Date().toISOString() 
+                    });
                 }
             });
-            if (data.details && data.details.actual_prompt && data.details.actual_prompt !== payload.prompt) {
+            if (endpoint === '/api/generate-image' && data.details && data.details.actual_prompt && data.details.actual_prompt !== payload.prompt) {
                  addMessage(`(模型实际使用提示词: ${data.details.actual_prompt})`, 'ai');
                  currentChatSessionMessages.push({ text: `(模型实际使用提示词: ${data.details.actual_prompt})`, sender: 'ai', timestamp: new Date().toISOString()});
-                    }
-        } else if (data.reply) { // AI text reply
-            addMessage(data.reply, 'ai'); // This already adds to currentChatSessionMessages
+            }
+        } else if (data.reply) { 
+            addMessage(data.reply, 'ai'); 
             currentChatSessionMessages.push({ text: data.reply, sender: 'ai', timestamp: new Date().toISOString() });
-        } else if (isImageRequest) { // Text-to-image request but no results
-             const aiResponseMessage = data.message || '图片生成成功，但未返回图片链接。';
+        } else if (isImageRequest) { 
+             const aiResponseMessage = data.message || 'AI服务处理成功，但未返回预期的结果格式。';
              addMessage(aiResponseMessage, 'ai');
              currentChatSessionMessages.push({ text: aiResponseMessage, sender: 'ai', timestamp: new Date().toISOString() });
-                }
+        }
         
-        saveCurrentChatToHistory(); // Saves currentChatSessionMessages
+        saveCurrentChatToHistory();
         displayChatHistoryList(); 
 
-        } catch (error) {
+    } catch (error) {
         console.error('Error sending message or processing response:', error);
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) {
             thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
         }
         addMessage('网络错误或无法连接到AI服务。', 'ai', false, 'error-message');
         currentChatSessionMessages.push({ text: '网络错误或无法连接到AI服务。', sender: 'ai', timestamp: new Date().toISOString(), optionalCssClass: 'error-message' });
-            }
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // 切换内容区域 (Modified switchTab)
@@ -882,9 +956,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const uploadImageBtn = document.getElementById('uploadImageBtn');
     const imageUploadInput = document.getElementById('imageUploadInput');
-    // const imagePreviewContainer = document.getElementById('imagePreviewContainer'); // Already defined globally
-    // const imagePreviewSrc = document.getElementById('imagePreviewSrc'); // Already defined globally
-    // const removeImagePreviewBtn = document.getElementById('removeImagePreviewBtn'); // Already defined globally
 
     if (uploadImageBtn && imageUploadInput && imagePreviewContainer && imagePreviewSrc && removeImagePreviewBtn) {
         uploadImageBtn.addEventListener('click', () => {
@@ -895,27 +966,28 @@ document.addEventListener('DOMContentLoaded', async () => {
             const file = event.target.files[0];
             if (file) {
                 if (file.type.startsWith('image/')) {
-                    currentSelectedFile = file; // Store the file object
+                    currentSelectedFile = file;
                     const reader = new FileReader();
                     reader.onload = (e) => {
                         imagePreviewSrc.src = e.target.result;
-                        imagePreviewContainer.style.display = 'flex'; // Use flex to align items if needed by CSS
+                        imagePreviewContainer.style.display = 'flex';
+                        showImageControls(); // Show controls when image is previewed
                     }
                     reader.readAsDataURL(file);
-                    console.log('Image selected for preview:', file.name);
                 } else {
                     alert('请选择一个图片文件。');
-                    imageUploadInput.value = ''; // Reset input
+                    imageUploadInput.value = '';
                     currentSelectedFile = null;
+                    // hideImageControls(); // Already handled by clearImagePreview if it was called
                 }
             }
         });
 
         removeImagePreviewBtn.addEventListener('click', () => {
-            clearImagePreview();
+            clearImagePreview(); // This will conditionally hide controls
         });
     } else {
-        console.warn("One or more image preview DOM elements not found. Preview functionality may be affected.");
+        console.warn("One or more image preview DOM elements not found.");
     }
 
     // Add beforeunload event listener to save chat if dirty
@@ -928,6 +1000,38 @@ document.addEventListener('DOMContentLoaded', async () => {
             // The main goal here is to silently save.
             }
         });
+
+    // MODIFIED: Aspect Ratio Button Event Listeners & Initial State 
+    if (imageControlsContainer && aspectRatioButtonsContainer && aspectRatioButtons.length > 0) {
+        aspectRatioButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                aspectRatioButtons.forEach(btn => btn.classList.remove('active'));
+                e.currentTarget.classList.add('active');
+                const selectedRatio = e.currentTarget.dataset.ratio;
+                currentSelectedSizeForAPI = aspectRatioToSizeMap[selectedRatio] || aspectRatioToSizeMap[DEFAULT_ASPECT_RATIO];
+                console.log("Aspect ratio selected:", selectedRatio, "API size:", currentSelectedSizeForAPI);
+            });
+        });
+
+        const defaultButton = Array.from(aspectRatioButtons).find(btn => btn.dataset.ratio === DEFAULT_ASPECT_RATIO);
+        if (defaultButton) defaultButton.classList.add('active');
+        
+        hideImageControls(); 
+    } else {
+        console.warn("Image size control elements (container or ratio buttons) not found.");
+    }
+    
+    if (userInput && imageControlsContainer) {
+        userInput.addEventListener('input', () => {
+            const text = userInput.value.trim().toLowerCase();
+            if (text.match(/(生成|画|创作)/i) && !currentSelectedFile) {
+                showImageControls();
+            } else if (!currentSelectedFile && !text.match(/(生成|画|创作)/i)) {
+                hideImageControls();
+            }
+        });
+    }
+
 });
 
 // (Make sure handleScenarioButtonClick, switchLanguage, updateScenarioPrompts (if used) are defined as before)
@@ -962,11 +1066,21 @@ function handleScenarioButtonClick(event) {
                     subPromptButton.onclick = () => {
                         userInput.value = promptText; 
                         userInput.focus();
+                        // If it's a text-to-image scenario, show controls
+                        if (scenarioKey === 'text-to-image') {
+                            showImageControls();
+                        }
                     };
                     subPromptsContainer.appendChild(subPromptButton);
                 }
             });
         }
+    }
+    // Show image controls if scenario is text-to-image or image-to-image
+    if (scenarioKey === 'text-to-image' || scenarioKey === 'image-to-image') {
+        showImageControls();
+    } else if (!currentSelectedFile) { 
+        hideImageControls();
     }
 } 
 
@@ -1056,4 +1170,25 @@ function updateUserLoginUI(userData) {
         userAuthSection.innerHTML = '';
         loginButtonContainer.style.display = 'flex'; // Show the Google login button
     }
-} 
+}
+
+// MODIFIED show/hide functions
+function showImageControls() {
+    if (imageControlsContainer) {
+        imageControlsContainer.style.display = 'flex'; 
+        // aspectRatioButtonsContainer should be visible if its parent #imageControlsContainer is flex
+        // and aspectRatioButtonsContainer itself is set to display:flex in HTML/CSS or here.
+        if (aspectRatioButtonsContainer) {
+             aspectRatioButtonsContainer.style.display = 'flex'; // Ensure the options are visible when parent is shown
+        }
+    }
+}
+
+function hideImageControls() {
+    if (imageControlsContainer) {
+        imageControlsContainer.style.display = 'none';
+    }
+    // No need to manage master button or options container display separately anymore within these functions,
+    // as the options container is the direct child now.
+}
+// <<<< END MODIFIED FUNCTIONS >>>> 

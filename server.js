@@ -17,19 +17,24 @@ const port = process.env.PORT || 3001;
 const app = express(); // Initialize Express app
 
 app.use(cors({
-    origin: 'http://localhost:3000', // MODIFIED to exactly match the frontend's origin
+    origin: ['http://localhost:3000', 'https://erlinmall.com', 'https://www.erlinmall.com'], // MODIFIED for production
     credentials: true // Allow cookies to be sent
 }));
 
 // 1. 使用中间件来解析JSON格式的请求体
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // TODO: 配置会话中间件 (需要安装 express-session)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'a_very_strong_default_secret_key_12345', // Replace with a strong secret, ideally from .env
     resave: false,
     saveUninitialized: false, // Set to false, we don't want to save uninitialized sessions
-    // cookie: { secure: process.env.NODE_ENV === 'production' } // Enable in production if using HTTPS
+    cookie: { 
+        secure: process.env.NODE_ENV === 'production', // Enable in production if using HTTPS
+        httpOnly: true, // Recommended for security
+        sameSite: 'lax' // Recommended for security 
+    } 
 }));
 
 // TODO: 初始化 Passport (需要安装 passport)
@@ -40,7 +45,7 @@ app.use(passport.session());
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3001/auth/google/callback", // Relative to your base URL
+    callbackURL: process.env.NODE_ENV === 'production' ? "https://erlinmall.com/auth/google/callback" : "http://localhost:3001/auth/google/callback", // MODIFIED for production
     scope: ['profile', 'email']
   },
   function(accessToken, refreshToken, profile, cb) {
@@ -87,6 +92,10 @@ const DASHSCOPE_API_KEY = process.env.DASHSCOPE_API_KEY; // Re-use the API key
 const TEXT_TO_IMAGE_SUBMIT_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis";
 const TASK_QUERY_BASE_URL = "https://dashscope.aliyuncs.com/api/v1/tasks/";
 const MODEL_NAME_TEXT_TO_IMAGE = "wanx2.1-t2i-turbo";
+
+// === Constants for Image Stylization (Image-to-Image) API ===
+const IMAGE_STYLIZATION_SUBMIT_URL = "https://dashscope.aliyuncs.com/api/v1/services/aigc/image2image/image-synthesis";
+const MODEL_NAME_IMAGE_STYLIZATION = "wanx2.1-imageedit"; // As per user's cURL
 
 // === Helper Functions for Text-to-Image ===
 
@@ -197,6 +206,74 @@ async function getTaskResult(taskId) {
     }
 }
 
+// === NEW Helper Functions for Image Stylization ===
+/**
+ * Creates an image stylization task with DashScope.
+ * @param {object} options - Options for image stylization.
+ * @param {string} options.base_image_data - Base64 encoded image data (or Data URL).
+ * @param {string} options.style_prompt - Text prompt describing the desired style.
+ * @param {number} [options.n=1] - Number of images to generate.
+ * @returns {Promise<string|null>} Task ID or null if failed.
+ */
+async function createImageStylizationTask(options) {
+    const {
+        base_image_data, // Expecting Base64 data URL like "data:image/jpeg;base64,..."
+        edit_prompt,     // Renamed from style_prompt for generality
+        edit_function = "stylization_all", // Default to stylization, can be overridden
+        n = 1,
+        size // <<<< ADDED: size parameter
+    } = options;
+
+    if (!base_image_data || !edit_prompt) {
+        console.error("[ImageEdit] Error: 'base_image_data' and 'edit_prompt' are required fields.");
+        return null;
+    }
+
+    const headers = {
+        "Authorization": `Bearer ${DASHSCOPE_API_KEY}`,
+        "Content-Type": "application/json",
+        "X-DashScope-Async": "enable"
+    };
+
+    const payload = {
+        model: MODEL_NAME_IMAGE_STYLIZATION,
+        input: {
+            function: edit_function, // Use the provided or default function
+            prompt: edit_prompt,
+            base_image_data: base_image_data
+        },
+        parameters: { n }
+    };
+
+    if (size) payload.parameters.size = size; // <<<< ADDED: Conditionally add size to payload
+
+    console.log(`[ImageEdit] Submitting ${edit_function} task to:`, IMAGE_STYLIZATION_SUBMIT_URL);
+    // console.log("[ImageEdit] Payload:", JSON.stringify(payload)); // Avoid logging full base64
+
+    try {
+        const response = await axios.post(IMAGE_STYLIZATION_SUBMIT_URL, payload, { headers });
+        if (response.data && response.data.output && response.data.output.task_id) {
+            console.log(`[ImageEdit] Task created successfully (${edit_function}). Task ID: ${response.data.output.task_id}, Status: ${response.data.output.task_status}`);
+            return response.data.output.task_id;
+        } else if (response.data && response.data.code) {
+            console.error(`[ImageEdit] API Error (${edit_function}): Code: ${response.data.code}, Message: ${response.data.message}, Request ID: ${response.data.request_id}`);
+            return null;
+        } else {
+            console.error(`[ImageEdit] Failed to create task (${edit_function}), unexpected response:`, response.data);
+            return null;
+        }
+    } catch (error) {
+        if (error.response) {
+            console.error(`[ImageEdit] API request error (server response, ${edit_function}):`, error.response.status, error.response.data);
+        } else if (error.request) {
+            console.error(`[ImageEdit] API request error (no response, ${edit_function}):`, error.request);
+        } else {
+            console.error(`[ImageEdit] Error submitting task (${edit_function}):`, error.message);
+        }
+        return null;
+    }
+}
+
 // === Google OAuth 路由 ===
 
 // 路由：用户点击"使用 Google 继续"后，前端会跳转到这里
@@ -207,19 +284,20 @@ app.get('/auth/google',
 
 // 路由：Google OAuth 成功（或失败）后，会重定向到这个回调 URL
 app.get('/auth/google/callback',
-  passport.authenticate('google', { failureRedirect: '/login-failed', failureMessage: true }),
+  passport.authenticate('google', { failureRedirect: process.env.NODE_ENV === 'production' ? 'https://erlinmall.com/login-failed.html' : '/login-failed', failureMessage: true }),
   function(req, res) {
     // Successful authentication, redirect home.
     console.log('Google authentication successful, user:', req.user);
-    res.redirect('http://localhost:3000/index.html'); // MODIFIED for consistency with CORS origin
+    res.redirect(process.env.NODE_ENV === 'production' ? 'https://erlinmall.com/index.html' : 'http://localhost:3000/index.html'); // MODIFIED for production
   }
 );
 
 app.get('/login-failed', (req, res) => {
   const errorMessage = req.session.messages && req.session.messages.length > 0 ? req.session.messages.join(', ') : 'Login failed';
   console.error('Google Login Failed:', errorMessage);
-  // You might want to redirect to a frontend page that displays the error
-  res.status(401).send(`Google Login Failed: ${errorMessage}. <a href="http://127.0.0.1:3000/index.html">Try again</a>`);
+  // Redirect to a frontend page that displays the error
+  const loginFailedUrl = process.env.NODE_ENV === 'production' ? 'https://erlinmall.com/login-failed.html' : 'http://localhost:3000/login-failed.html';
+  res.redirect(`${loginFailedUrl}?error=${encodeURIComponent(errorMessage)}`);
 });
 
 app.get('/api/current-user', (req, res) => {
@@ -240,7 +318,7 @@ app.get('/logout', (req, res, next) => {
       }
       res.clearCookie('connect.sid'); // Default session cookie name
       console.log('User logged out successfully.');
-      res.redirect('http://127.0.0.1:3000/index.html'); // Redirect to frontend home
+      res.redirect(process.env.NODE_ENV === 'production' ? 'https://erlinmall.com/index.html' : 'http://localhost:3000/index.html'); // MODIFIED for production
     });
   });
 });
@@ -373,10 +451,180 @@ app.post('/api/generate-image', async (req, res) => {
     }
 });
 
+app.post('/api/analyze-image', async (req, res) => {
+    console.log(`后端 (${port}) 收到 /api/analyze-image POST请求`);
+    const { imageDataB64, userQuestion } = req.body; // 假设前端发送 Base64 图像数据和问题
+
+    if (!imageDataB64) {
+        return res.status(400).json({ error: '请求体中必须包含 "imageDataB64" (Base64 编码的图像数据)。' });
+    }
+    if (!process.env.DASHSCOPE_API_KEY) {
+        console.error("[AnalyzeImage] DASHSCOPE_API_KEY is not set.");
+        return res.status(500).json({ error: '服务器API Key未配置。' });
+    }
+    
+    const messagesContent = [];
+    messagesContent.push({
+        type: "image_url",
+        image_url: { "url": imageDataB64 } // 直接使用前端传来的 Base64 Data URL
+    });
+    messagesContent.push({
+        type: "text",
+        text: userQuestion || "这张图片里有什么？请详细描述。" // 默认问题
+    });
+
+    console.log("[AnalyzeImage] Submitting task to qwen-vl-max via OpenAI compatible API...");
+    // 为避免日志过长，不打印完整的 Base64 图像数据
+    // console.log("[AnalyzeImage] Payload (messages structure):", JSON.stringify([{role: "user", content: messagesContent.map(c => c.type === 'text' ? c : {type: c.type, image_url: 'data_url_hidden'})}], null, 2));
+
+    try {
+        // openai 实例应该已经在文件顶部定义和初始化了
+        const response = await openai.chat.completions.create({
+            model: "qwen-vl-max", // 使用 qwen-vl-max 模型
+            messages: [{
+                role: "user",
+                content: messagesContent
+            }],
+            // stream: false, // VL模型通常回答较短，可能不需要流
+        });
+
+        // console.log("[AnalyzeImage] API Response:", JSON.stringify(response, null, 2));
+
+        if (response.choices && response.choices.length > 0 && response.choices[0].message && response.choices[0].message.content) {
+            const aiResponseText = response.choices[0].message.content;
+            console.log("[AnalyzeImage] Image analysis successful.");
+            return res.json({
+                message: "图像分析成功",
+                analysis: aiResponseText,
+                details: {
+                    model: response.model,
+                    usage: response.usage
+                }
+            });
+        } else {
+            console.error("[AnalyzeImage] Failed to analyze image, unexpected API response structure:", response);
+            return res.status(500).json({ error: '图像分析失败，API响应格式不符合预期。', details: response });
+        }
+    } catch (error) {
+        console.error("[AnalyzeImage] Error calling OpenAI compatible API for qwen-vl-max:", error);
+        let statusCode = 500;
+        let errorMessage = '处理图像分析请求时发生内部错误。';
+        if (error.response) { // Axios-like error structure if openai.chat.completions.create wraps it
+            statusCode = error.response.status || 500;
+            errorMessage = error.response.data?.error?.message || error.response.data?.message || 'API请求错误';
+            console.error("[AnalyzeImage] API Error Details:", error.response.data);
+        } else if (error.status) { // OpenAI SDK direct error
+             statusCode = error.status;
+             errorMessage = error.message;
+             if (error.error?.message) errorMessage += ` (${error.error.message})`;
+        } else if (error.message) {
+            errorMessage = error.message;
+        }
+        
+        return res.status(statusCode).json({ error: `图像分析请求失败: ${errorMessage}` });
+    }
+});
+
+// === NEW: Image Stylization API Route (now generic Image Edit) ===
+app.post('/api/image-edit', async (req, res) => { // Renamed route for clarity
+    console.log(`后端 (${port}) 收到 /api/image-edit POST请求`);
+    // Accept prompt under either name for backward compatibility or clarity
+    const prompt = req.body.edit_prompt || req.body.style_prompt;
+    const { base_image_data, edit_function, n, size } = req.body; // <<<< ADDED: size from req.body
+
+    if (!base_image_data || !prompt) {
+        return res.status(400).json({ error: '请求体中必须包含 "base_image_data" (Base64 编码的图像数据) 和 "edit_prompt" (编辑或风格提示)。' });
+    }
+    if (!DASHSCOPE_API_KEY) { 
+        console.error("[ImageEditRoute] DASHSCOPE_API_KEY is not set.");
+        return res.status(500).json({ error: '服务器API Key未配置。' });
+    }
+
+    const actual_edit_function = edit_function || "stylization_all"; // Default to stylization if not specified
+
+    const editOptions = {
+        base_image_data,
+        edit_prompt: prompt,
+        edit_function: actual_edit_function,
+        n: n || 1,
+        size: size // <<<< ADDED: pass size to task creator
+    };
+
+    try {
+        const taskId = await createImageStylizationTask(editOptions); // Now a generic image edit task
+
+        if (!taskId) {
+            return res.status(500).json({ error: `创建图像编辑任务 (${actual_edit_function}) 失败。请检查服务器日志。` });
+        }
+
+        console.log(`[ImageEditRoute] 任务 (${actual_edit_function}) 已提交，ID: ${taskId}. 开始轮询结果...`);
+        const maxAttempts = 30; 
+        const pollInterval = 6000; // 6 seconds
+
+        for (let i = 0; i < maxAttempts; i++) {
+            const taskOutput = await getTaskResult(taskId); // Reusing the generic getTaskResult
+            if (taskOutput) {
+                const currentStatus = taskOutput.task_status;
+                console.log(`[ImageEditRoute] 轮询 ${i + 1}/${maxAttempts}: 任务 ${taskId} (${actual_edit_function}) 状态: ${currentStatus}`);
+
+                if (currentStatus === "SUCCEEDED") {
+                    console.log(`[ImageEditRoute] 图片编辑 (${actual_edit_function}) 成功！`);
+                    if (taskOutput.results && taskOutput.results.length > 0 && taskOutput.results[0].url) {
+                        return res.json({
+                            message: `图片编辑 (${actual_edit_function}) 成功`,
+                            results: taskOutput.results, // Contains URLs
+                            task_id: taskId,
+                            details: taskOutput
+                        });
+                    } else {
+                        console.error("[ImageEditRoute] 任务成功，但未在 results 中找到图片URL。详细输出:", taskOutput);
+                        return res.status(500).json({ error: '任务成功但未返回有效的图片结果URL。', task_id: taskId, details: taskOutput });
+                    }
+                } else if (currentStatus === "FAILED" || currentStatus === "CANCELED") {
+                    console.error(`[ImageEditRoute] 图片编辑任务 (${actual_edit_function}) ${currentStatus}. 详细信息:`, taskOutput.message || taskOutput);
+                    return res.status(500).json({ 
+                        error: `图片编辑任务 (${actual_edit_function}) ${currentStatus}`, 
+                        message: taskOutput.message || '未知错误', 
+                        task_id: taskId,
+                        details: taskOutput 
+                    });
+                } else if (currentStatus === "PENDING" || currentStatus === "RUNNING") {
+                    if (i < maxAttempts - 1) {
+                        await new Promise(resolve => setTimeout(resolve, pollInterval));
+                    } else {
+                        console.error(`[ImageEditRoute] 轮询超时，任务 (${actual_edit_function}) 未在预期时间内完成。`);
+                        return res.status(504).json({ error: `图像编辑任务 (${actual_edit_function}) 超时。`, task_id: taskId });
+                    }
+                } else {
+                     console.error(`[ImageEditRoute] 任务查询返回未知状态 (${currentStatus}) 或错误 (${actual_edit_function})，停止轮询。详细:`, taskOutput);
+                     return res.status(500).json({ error: `任务查询返回未知状态 (${actual_edit_function}): ${currentStatus}`, task_id: taskId, details: taskOutput });
+                }
+            } else { 
+                if (i < maxAttempts - 1) {
+                    console.log("[ImageEditRoute] 查询任务状态时可能发生临时错误，稍后重试...");
+                    await new Promise(resolve => setTimeout(resolve, pollInterval));
+                } else {
+                     console.error("[ImageEditRoute] 多次查询任务状态失败，停止轮询。");
+                     return res.status(500).json({ error: '多次查询任务状态失败。', task_id: taskId });
+                }
+            }
+        }
+    } catch (error) {
+        console.error(`[ImageEditRoute] /api/image-edit (${actual_edit_function}) 路由处理时发生意外错误:`, error);
+        res.status(500).json({ error: `处理图像编辑请求 (${actual_edit_function}) 时发生意外错误。` });
+    }
+});
+
 // 4. 启动服务器
 app.listen(port, () => {
     console.log(`后端API服务正在 http://localhost:${port} 上运行`);
-    console.log(`前端的 fetch 请求应该发送到 http://localhost:${port}/api/chat`);
+    const siteUrl = process.env.NODE_ENV === 'production' ? 'https://erlinmall.com' : `http://localhost:3000`;
+    const apiUrl = process.env.NODE_ENV === 'production' ? 'https://erlinmall.com' : `http://localhost:${port}`;
+    console.log(`Production Site URL: https://erlinmall.com`);
+    console.log(`Development Site URL: http://localhost:3000`);
+    console.log(`API accessible (potentially via reverse proxy in prod) at path /api/* relative to site URL.`);
+    console.log(`Frontend should point API requests to: ${apiUrl}`);
+
     if (!process.env.DASHSCOPE_API_KEY) {
         console.warn("警告：环境变量 DASHSCOPE_API_KEY 未设置或为空。请确保 .env 文件已正确配置并加载。");
     } else {
