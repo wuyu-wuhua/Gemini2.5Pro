@@ -840,40 +840,76 @@ if (scenarioButtons) {
     });
 }
 
-// 语言切换 (existing functions switchLanguage, applyTranslations)
+// 语言切换 (Modified to use setTimeout for applyTranslations)
 function switchLanguage(lang) {
     if (lang && (lang === 'zh' || lang === 'en')) {
-        localStorage.setItem('language', lang);
+        localStorage.setItem('language', lang); // Set in storage first
+
         if (currentLangSpan) {
             currentLangSpan.textContent = lang === 'zh' ? '中文' : 'English';
         }
         langOptions.forEach(option => {
             option.classList.toggle('active', option.getAttribute('data-lang') === lang);
         });
-        applyTranslations(); // This is critical
-        // Also re-display history list if it's visible, to update titles/dates if language-dependent
-        if (sidebarContentHost && sidebarContentHost.style.display !== 'none') {
-            displayChatHistoryList();
-        }
-         // Re-render welcome message if chat is showing only that
-        if (chatMessages && chatMessages.children.length === 1 && chatMessages.children[0].classList.contains('ai-message')) {
-            const trans = getSafeTranslations();
-            const welcomeText = trans[lang]['welcome-message'];
-            chatMessages.innerHTML = ''; // Clear old welcome
-            addMessage(welcomeText, 'ai', true); // Add new translated welcome
-        }
+
+        // Use setTimeout to allow current event cycle to complete before translating
+        setTimeout(() => {
+            applyTranslations(lang); // Pass the new language directly
+
+            // Re-render dynamic sub-prompts for active scenario using NEW lang
+            const activeScenarioButton = document.querySelector('.scenario-btn.active');
+            if (activeScenarioButton && subPromptsContainer) {
+                const scenarioKey = activeScenarioButton.getAttribute('data-scenario');
+                subPromptsContainer.innerHTML = ''; 
+                
+                const promptKeys = subPrompts[scenarioKey];
+                const trans = getSafeTranslations(); 
+
+                if (promptKeys && trans && trans[lang]) { // Use the new 'lang' here
+                    const langPrompts = trans[lang];
+                    promptKeys.forEach(key => {
+                        const promptText = langPrompts[key];
+                        if (promptText) {
+                            const subPromptButton = document.createElement('button');
+                            subPromptButton.className = 'sub-prompt-btn';
+                            subPromptButton.textContent = promptText;
+                            subPromptButton.onclick = () => {
+                                userInput.value = promptText;
+                                userInput.focus();
+                                if (scenarioKey === 'text-to-image') {
+                                    showImageControls();
+                                }
+                            };
+                            subPromptsContainer.appendChild(subPromptButton);
+                        }
+                    });
+                }
+            }
+
+            // Update history list titles (uses localStorage, which is now NEW lang)
+            if (sidebarContentHost && sidebarContentHost.style.display !== 'none') {
+                displayChatHistoryList();
+            }
+
+            // Update welcome message in chat using NEW lang
+            if (chatMessages && chatMessages.children.length === 1 && chatMessages.children[0].classList.contains('ai-message')) {
+                const trans = getSafeTranslations();
+                const welcomeText = trans[lang] ? trans[lang]['welcome-message'] : (lang === 'zh' ? '你好！' : 'Hello!');
+                chatMessages.innerHTML = ''; 
+                addMessage(welcomeText, 'ai', true);
+            }
+        }, 0); // End of setTimeout block
     }
 }
 
-// Apply translations (Modified to include new elements if necessary)
-function applyTranslations() {
-    const currentLang = localStorage.getItem('language') || 'zh';
-    const trans = getSafeTranslations(); // Use safe getter
+// Apply translations (Modified to accept language parameter)
+function applyTranslations(languageToApply) {
+    const currentLang = languageToApply || localStorage.getItem('language') || 'zh';
+    const trans = getSafeTranslations();
     
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
         if (trans[currentLang] && trans[currentLang][key]) {
-            if (el.classList.contains('scenario-btn')) return;
             el.textContent = trans[currentLang][key];
         }
     });
@@ -895,17 +931,12 @@ function applyTranslations() {
                 "Gemini 2.5 Pro中文版" : "Gemini 2.5 Pro";
         }
     }
-    // ... (rest of applyTranslations for sub-prompts etc.)
-    if (subPromptsContainer) subPromptsContainer.innerHTML = ''; 
-    if (scenarioButtons) scenarioButtons.forEach(btn => btn.classList.remove('active'));
 
-    // Translate Google login button text
     const googleLoginSpan = loginButtonContainer?.querySelector('span[data-i18n="menu-login-google"]');
     if (googleLoginSpan && trans[currentLang] && trans[currentLang]['menu-login-google']) {
         googleLoginSpan.textContent = trans[currentLang]['menu-login-google'];
     }
 
-    // Re-translate logout button text if user is logged in
     if (userAuthSection && userAuthSection.style.display !== 'none') {
         const logoutSpan = userAuthSection.querySelector('span[data-i18n="menu-logout"]');
         if (logoutSpan && trans[currentLang] && trans[currentLang]['menu-logout']) {
@@ -932,25 +963,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const savedLang = localStorage.getItem('language') || 'zh';
-    switchLanguage(savedLang);
+    // switchLanguage(savedLang); // OLD CALL
+    // Instead of calling switchLanguage (which does more than just apply initial translations),
+    // directly set up the language UI and then call applyTranslations.
+    if (currentLangSpan) {
+        currentLangSpan.textContent = savedLang === 'zh' ? '中文' : 'English';
+    }
+    langOptions.forEach(option => {
+        option.classList.toggle('active', option.getAttribute('data-lang') === savedLang);
+    });
+    applyTranslations(savedLang); // Call with the saved language
 
-    // Default to 'chat' tab view only if on index.html
-    // The switchTab function itself will set the .active class on the sidebar item.
     if (isOnIndexPath()) { 
-        switchTab('chat'); // This will also display history list by default
+        // switchTab('chat'); // This line might be redundant if default HTML active classes are set right.
+                           // Or, ensure it correctly sets up the view without causing re-translation issues.
+                           // For now, let main.js sidebar logic handle initial tab state.
 
-        if (chatMessages && chatMessages.children.length === 0) { // If chat is empty (e.g. no history loaded to it)
+        if (chatMessages && chatMessages.children.length === 0) { 
             const trans = getSafeTranslations();
-            const welcomeText = trans[savedLang]['welcome-message'];
-            addMessage(welcomeText, 'ai', true); // true = isInitialOrHistory
+            const welcomeText = trans[savedLang] ? trans[savedLang]['welcome-message'] : (savedLang === 'zh' ? '你好！' : 'Hello!');
+            addMessage(welcomeText, 'ai', true); 
         }
-        // Ensure chat scrolls to bottom if it was the target of initialization on index.html
-        if (document.getElementById('chat-section')?.classList.contains('active') && chatMessages) {
-             chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-    } 
-    // If not on index.html (e.g., on capabilities.html), 
-    // the inline script in that HTML file should handle setting the active tab.
+        // ... (rest of isOnIndexPath logic) ...
+    }
+    // ... (rest of DOMContentLoaded) ...
 
     if (document.querySelector('.rating-summary')) { /* ... existing rating summary ... */ }
     setupMarquee();

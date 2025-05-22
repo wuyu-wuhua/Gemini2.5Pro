@@ -138,6 +138,53 @@ const translations = {
         "tag-photography": "摄影",
         "tag-analysis": "分析能力",
         "rating-overall": "综合评分",
+
+        //个人信息保护规则
+        "privacyPolicyPageTitle": "个人信息保护规则",
+        "privacyPolicyIntro": "欢迎使用 Gemini 2.5 Pro！我们非常重视您的个人信息和隐私保护。本《个人信息保护规则》（以下简称'本规则'）旨在向您说明我们如何收集、使用、存储、共享和保护您的个人信息，以及您如何管理您的个人信息。请您在使用我们的服务前，仔细阅读并充分理解本规则。",
+        "privacyPolicyInfoCollection": "一、我们如何收集和使用您的个人信息",
+        "privacyPolicyInfoCollectionDesc": "在您使用我们的服务过程中，我们可能会收集以下类型的个人信息：",
+        "privacyPolicyInfoCollectionItem1": "您提供的信息：例如，您在注册账户时提供的用户名、邮箱地址；您在使用特定功能时上传的文本、图片等信息。",
+        "privacyPolicyInfoCollectionItem2": "我们自动收集的信息：例如，您的设备信息、日志信息、IP地址、浏览记录等。",
+        "privacyPolicyInfoCollectionItem3": "我们通过第三方获取的信息：例如，当您使用Google账户登录时，我们可能会获取您的Google账户部分公开信息。",
+        "privacyPolicyInfoUsage": "我们收集您的个人信息主要是为了向您提供、优化和保障我们的服务，具体可能包括：",
+        "privacyPolicyInfoUsageItem1": "向您提供、维护和改进我们的服务。",
+        "privacyPolicyInfoUsageItem2": "向您推荐个性化的内容和产品。",
+        "privacyPolicyInfoUsageItem3": "进行数据分析和研究，以改善我们的服务。",
+        "privacyPolicyInfoUsageItem4": "保障账户安全，预防欺诈和非法活动。",
+        "privacyPolicyInfoUsageItem5": "遵守适用的法律法规和监管要求。",
+        "privacyPolicyInfoSharing": "二、我们如何共享、转让、公开披露您的个人信息",
+        "privacyPolicyInfoSharingDesc": "我们可能会将您的个人信息共享、转让或公开披露给以下第三方：",
+        "privacyPolicyInfoSharingItem1": "已获得您的明确同意。",
+        "privacyPolicyInfoSharingItem2": "为实现本规则第一条所述目的，我们可能会向关联公司、合作伙伴或第三方服务提供商共享必要的个人信息，但我们会要求他们遵守本规则并采取相关的保密和安全措施。",
+        "privacyPolicyInfoSharingItem3": "根据法律法规的规定或行政、司法机关的强制性要求。",
+        "privacyPolicyInfoTransfer": "我们不会将您的个人信息转让给任何公司、组织和个人，但以下情况除外：",
+        "privacyPolicyInfoTransferItem1": "已获得您的明确同意。",
+        "privacyPolicyInfoTransferItem2": "在涉及合并、收购或破产清算时，如涉及到个人信息转让，我们会要求新的持有您个人信息的公司、组织继续受本规则的约束。",
+        "privacyPolicyInfoDisclosure": "我们仅会在以下情况下，公开披露您的个人信息：",
+        "privacyPolicyInfoDisclosureItem1": "已获得您的明确同意。",
+        "privacyPolicyInfoDisclosureItem2": "基于法律的披露：在法律、法律程序、诉讼或政府主管部门强制性要求的情况下，我们可能会公开披露您的个人信息。",
+        "privacyPolicyInfoProtection": "三、我们如何保护您的个人信息安全",
+        "privacyPolicyInfoProtectionDesc": "我们已使用符合业界标准的安全防护措施保护您提供的个人信息，防止数据遭到未经授权的访问、公开披露、使用、修改、损坏或丢失。我们会采取一切合理可行的措施，保护您的个人信息。",
+        "privacyPolicyUserRights": "四、您的权利",
+        "privacyPolicyUserRightsDesc": "按照中国相关的法律、法规、标准，以及其他国家、地区的通行做法，我们保障您对自己的个人信息行使以下权利：",
+        "privacyPolicyUserRightsItem1": "访问和获取您的个人信息。",
+        "privacyPolicyUserRightsItem2": "更正或补充您的个人信息。",
+        "privacyPolicyUserRightsItem3": "删除您的个人信息。",
+        "privacyPolicyUserRightsItem4": "限制或拒绝我们处理您的个人信息。",
+        "privacyPolicyUserRightsItem5": "注销账户。",
+        "privacyPolicyChildren": "五、未成年人信息的保护",
+        "privacyPolicyChildrenDesc": "我们的产品、网站和服务主要面向成人。若您是18周岁以下的未成年人，在使用我们的产品和/或服务前，应事先取得您监护人的同意。我们根据国家相关法律法规的规定保护未成年人的个人信息。",
+        "privacyPolicyUpdates": "六、本规则如何更新",
+        "privacyPolicyUpdatesDesc": "我们可能会适时对本规则进行调整或变更，本规则的任何更新将以标注更新时间的方式公布在我们网站上，除法律法规或监管规定另有强制性规定外，经调整或变更的内容一经通知或公布，立即生效。如您在规则调整或变更后继续使用我们的服务，即表示您已充分阅读、理解并接受修改后的规则内容。",
+        "privacyPolicyContact": "七、如何联系我们",
+        "privacyPolicyContactDesc": "如果您对本规则有任何疑问、意见或建议，可以通过以下方式与我们联系：ytsgabcde37@2925.com。我们将在收到您的请求后的合理时间内予以回复。",
+        "privacyPolicyLastUpdated": "最后更新日期：2025年5月22日",
+        "backToHomeFromPrivacy": "返回首页",
+        
+        
+        
+        
         
         // New Review 8 (overall 10th review)
         "reviewer-name-8": "学生小李",
@@ -407,6 +454,65 @@ const translations = {
         "tag-photography": "Photography",
         "tag-analysis": "Analytical Skills",
         "rating-overall": "Overall Rating",
+
+        // Privacy Policy Page
+        "privacyPolicyPageTitle": "Privacy Policy",
+        "privacyPolicyIntro": "Welcome to Gemini 2.5 Pro! We take your privacy seriously. This Privacy Policy explains how we collect, use, store, and protect your information. Please read it carefully before using our services.",
+        "privacyPolicyInfoCollection": "1. Information We Collect",
+        "privacyPolicyInfoCollectionDesc": "When you use our services, we may collect the following types of information:",
+        "privacyPolicyInfoCollectionItem1": "Information You Provide: For example, when you register an account, you provide your username and email address; when you use specific features, you upload text, images, etc.",
+        "privacyPolicyInfoCollectionItem2": "Information We Automatically Collect: For example, your device information, log information, IP address, browsing history, etc.",
+        "privacyPolicyInfoCollectionItem3": "Information We Obtain from Third Parties: For example, when you use Google account to log in, we may obtain some of your Google account's public information.",
+        "privacyPolicyInfoUsage": "2. How We Use Your Information",
+        "privacyPolicyInfoUsageDesc": "We collect your information mainly to provide, optimize, and secure our services. This may include:",
+        "privacyPolicyInfoUsageItem1": "Core Functionality: For example, AI chat, image generation, and analysis.",
+        "privacyPolicyInfoUsageItem2": "Identity Verification, Security, and Archiving.",
+        "privacyPolicyInfoUsageItem3": "Data Analysis to Improve Our Products and Services.",
+        "privacyPolicyInfoUsageItem4": "Compliance with Applicable Laws and Regulations.",
+        "privacyPolicyInfoUsageItem5": "To ensure account security, prevent fraud, and illegal activities.",
+        "privacyPolicyInfoSharing": "3. How We Share, Transfer, or Disclose Your Information",
+        "privacyPolicyInfoSharingDesc": "We may share, transfer, or disclose your information to the following third parties:",
+        "privacyPolicyInfoSharingItem1": "You have given us explicit consent.",
+        "privacyPolicyInfoSharingItem2": "To achieve the purposes described in section 2, we may share your information with our affiliated companies, partners, or third-party service providers. However, we will require them to comply with this Privacy Policy and take appropriate security and confidentiality measures.",
+        "privacyPolicyInfoSharingItem3": "Under legal requirements or when required by law.",
+        "privacyPolicyInfoTransfer": "4. We Will Not Transfer or Disclose Your Information to Third Parties",
+        "privacyPolicyInfoTransferItem1": "We will not transfer or disclose your information to any company, organization, or individual, except in the following cases:",
+        "privacyPolicyInfoTransferItem2": "You have given us explicit consent.",
+        "privacyPolicyInfoTransferItem3": "In the event of a merger, acquisition, or bankruptcy, if the information is transferred to the new owner or successor.",
+        "privacyPolicyInfoDisclosure": "5. We Will Only Disclose Your Information in the Following Circumstances",
+        "privacyPolicyInfoDisclosureItem1": "You have given us explicit consent.",
+        "privacyPolicyInfoDisclosureItem2": "Based on legal requirements: In the event of a legal process, such as a court order or government investigation, we may disclose your information.",
+        "privacyPolicyInfoProtection": "6. How We Protect Your Information",
+        "privacyPolicyInfoProtectionDesc": "We have implemented industry-standard security measures to protect your information. However, no method of transmission over the internet is 100% secure.",
+        "privacyPolicyUserRights": "7. Your Rights",
+        "privacyPolicyUserRightsDesc": "According to Chinese laws, regulations, and international practices, you have the following rights regarding your information:",
+        "privacyPolicyUserRightsItem1": "Access and Retrieve Your Information.",
+        "privacyPolicyUserRightsItem2": "Correct or Update Your Information.",
+        "privacyPolicyUserRightsItem3": "Delete Your Information.",
+        "privacyPolicyUserRightsItem4": "Limit or Refuse Our Processing of Your Information.",
+        "privacyPolicyUserRightsItem5": "Request Account Deactivation.",
+        "privacyPolicyChildren": "8. Protection of Minors' Information",
+        "privacyPolicyChildrenDesc": "Our products and services are primarily targeted at adults. If you are under 18 years old, please obtain the consent of your legal guardian before using our products and services.",
+        "privacyPolicyUpdates": "9. How We Update This Privacy Policy",
+        "privacyPolicyUpdatesDesc": "We may update this Privacy Policy from time to time to reflect changes in our practices or for other operational, legal, or regulatory reasons. We will notify you of significant changes through our services or other communication channels.",
+        "privacyPolicyContact": "10. How to Contact Us",
+        "privacyPolicyContactDesc": "If you have any questions or concerns about this Privacy Policy, please contact us at ytsgabcde37@2925.com. We will respond to your request within a reasonable time.",
+        "privacyPolicyLastUpdated": "Last Updated: May 22, 2025",
+        "backToHomeFromPrivacy": "Back to Home",
+        
+        
+
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
         
         // New Review 8 (overall 10th review)
         "reviewer-name-8": "Student Xiao Li",
