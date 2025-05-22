@@ -28,14 +28,15 @@ let currentChatIsDirty = false; // Tracks if the current chat has unsaved user c
 const MAX_HISTORY_ITEMS = 20; // Limit the number of history items
 let currentSelectedFile = null;
 let isAspectRatioOptionsVisible = false;
+let isAttemptingLoginRedirect = false; // Flag to prevent login redirect loops
 
 // <<<< ADDED: Aspect Ratio and Size Globals >>>>
 const aspectRatioToSizeMap = {
     "1:1": "1024*1024",
     "4:3": "1024*768",
     "3:4": "768*1024",
-    "16:9": "1792*1024",
-    "9:16": "1024*1792"
+    "16:9": "1440*810",
+    "9:16": "810*1440"
 };
 const DEFAULT_ASPECT_RATIO = "1:1";
 let currentSelectedSizeForAPI = aspectRatioToSizeMap[DEFAULT_ASPECT_RATIO];
@@ -387,9 +388,9 @@ function loadSpecificChat(sessionId) {
                 imageMessageDiv.appendChild(contentDiv);
                 chatMessages.appendChild(imageMessageDiv);
             } else if (msg.type === 'user-image' && msg.sender === 'user') { // User uploaded image from history
-                const imageMessageDiv = document.createElement('div');
+                 const imageMessageDiv = document.createElement('div');
                 imageMessageDiv.className = 'message user-message image-message-wrapper user-uploaded-image-display';
-
+                
                 const contentDiv = document.createElement('div');
                 contentDiv.className = 'message-content';
 
@@ -400,20 +401,20 @@ function loadSpecificChat(sessionId) {
                     fileNameP.style.fontSize = '0.9em';
                     contentDiv.appendChild(fileNameP);
                 } else if (msg.url) { // Should ideally be a small thumbnail if we implement that
-                    const imgContainer = document.createElement('div');
-                    imgContainer.className = 'image-result-container user-uploaded-image-container'; 
-                    const imgElement = document.createElement('img');
-                    imgElement.src = msg.url; 
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'image-result-container user-uploaded-image-container';
+                const imgElement = document.createElement('img');
+                imgElement.src = msg.url; 
                     imgElement.alt = msg.fileName || 'User uploaded image';
-                    imgElement.className = 'generated-image'; 
-                    imgContainer.appendChild(imgElement);
-                    contentDiv.appendChild(imgContainer);
+                imgElement.className = 'generated-image';
+                imgContainer.appendChild(imgElement);
+                contentDiv.appendChild(imgContainer);
                 } else {
                      const errorP = document.createElement('p');
                     errorP.textContent = `(无法加载历史图片: ${msg.fileName || '未知文件'})`;
                     contentDiv.appendChild(errorP);
                 }
-                
+
                 const avatarDiv = document.createElement('div');
                 avatarDiv.className = 'avatar';
                 const avatarImgUser = document.createElement('img');
@@ -477,7 +478,7 @@ async function sendMessage() {
         console.log("No message text or selected file to send.");
         return;
     }
-    
+
     const userMessagePartsForHistory = [];
 
     if (localSelectedFileForSend && localSelectedFileDataUrlForSend) {
@@ -486,17 +487,17 @@ async function sendMessage() {
         const contentDiv = document.createElement('div');
         contentDiv.className = 'message-content';
         const imgContainer = document.createElement('div');
-        imgContainer.className = 'image-result-container user-uploaded-image-container';
+        imgContainer.className = 'image-result-container user-uploaded-image-container'; 
         const imgElement = document.createElement('img');
         imgElement.src = localSelectedFileDataUrlForSend;
         imgElement.alt = localSelectedFileForSend.name;
-        imgElement.className = 'generated-image';
+        imgElement.className = 'generated-image'; 
         imgContainer.appendChild(imgElement);
         contentDiv.appendChild(imgContainer);
         const avatarDiv = document.createElement('div');
         avatarDiv.className = 'avatar';
         const avatarImg = document.createElement('img');
-        avatarImg.src = userAvatar;
+        avatarImg.src = userAvatar; 
         avatarImg.alt = '用户';
         avatarImg.onerror = function() { this.src = 'https://placehold.co/40x40?text=U'; };
         avatarDiv.appendChild(avatarImg);
@@ -608,12 +609,12 @@ async function sendMessage() {
         endpoint = '/api/chat';
         payload.message = messageText;
         console.log("Standard text chat request to:", endpoint);
-    } else {
+        } else {
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
         console.log("No valid action determined.");
         hideImageControls(); 
         chatMessages.scrollTop = chatMessages.scrollHeight;
-        return; 
+        return;
     }
 
     // Manage visibility of the main image controls container
@@ -641,16 +642,16 @@ async function sendMessage() {
         console.log("Attempting to fetch from:", fullEndpointUrl, "Payload:", JSON.stringify(payload).substring(0, 200) + "...");
 
         const response = await fetch(fullEndpointUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
-        });
+            });
 
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) {
             thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
         }
 
-        if (!response.ok) {
+            if (!response.ok) {
             let errorData = {};
             try { errorData = await response.json(); } catch (e) { console.warn("Failed to parse error response as JSON:", e); }
             console.error('API request failed:', response.status, errorData);
@@ -660,7 +661,7 @@ async function sendMessage() {
             return;
         }
 
-        const data = await response.json();
+                const data = await response.json();
         console.log('Received data from backend:', data);
 
         // --- Handle AI Response ---
@@ -704,7 +705,7 @@ async function sendMessage() {
             if (endpoint === '/api/generate-image' && data.details && data.details.actual_prompt && data.details.actual_prompt !== payload.prompt) {
                  addMessage(`(模型实际使用提示词: ${data.details.actual_prompt})`, 'ai');
                  currentChatSessionMessages.push({ text: `(模型实际使用提示词: ${data.details.actual_prompt})`, sender: 'ai', timestamp: new Date().toISOString()});
-            }
+                    }
         } else if (data.reply) { 
             addMessage(data.reply, 'ai'); 
             currentChatSessionMessages.push({ text: data.reply, sender: 'ai', timestamp: new Date().toISOString() });
@@ -712,20 +713,20 @@ async function sendMessage() {
              const aiResponseMessage = data.message || 'AI服务处理成功，但未返回预期的结果格式。';
              addMessage(aiResponseMessage, 'ai');
              currentChatSessionMessages.push({ text: aiResponseMessage, sender: 'ai', timestamp: new Date().toISOString() });
-        }
+                }
         
         saveCurrentChatToHistory();
         displayChatHistoryList(); 
 
-    } catch (error) {
+        } catch (error) {
         console.error('Error sending message or processing response:', error);
         if (thinkingMessageDiv && thinkingMessageDiv.parentNode) {
             thinkingMessageDiv.parentNode.removeChild(thinkingMessageDiv);
         }
         addMessage('网络错误或无法连接到AI服务。', 'ai', false, 'error-message');
         currentChatSessionMessages.push({ text: '网络错误或无法连接到AI服务。', sender: 'ai', timestamp: new Date().toISOString(), optionalCssClass: 'error-message' });
-    }
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+            chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
 // 切换内容区域 (Modified switchTab)
@@ -1032,6 +1033,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
+    // START: Login Guard Logic
+    function ensureUserIsLoggedIn(event, actionDescription = '使用此功能') {
+        if (isAttemptingLoginRedirect) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            return false; // Already attempting to redirect, prevent further actions
+        }
+
+        const isLoggedIn = localStorage.getItem('token'); 
+        if (!isLoggedIn) {
+            if (!window.location.pathname.endsWith('login.html') && !window.location.pathname.endsWith('register.html')) {
+                isAttemptingLoginRedirect = true; // Set flag before alert
+                
+                alert(`请先登录以${actionDescription}。`);
+                
+                // Prevent default to stop further processing of the event that triggered this
+                if (event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                setTimeout(() => { 
+                    window.location.href = 'login.html';
+                    // Fallback to reset the flag if redirection somehow fails or is blocked
+                    // and the user remains on the current page.
+                    setTimeout(() => {
+                        isAttemptingLoginRedirect = false;
+                    }, 1500); // Reset after 1.5 seconds if still on page.
+                }, 50); // 50ms delay for the primary redirect
+            }
+            return false; // Indicate login is required
+        }
+        isAttemptingLoginRedirect = false; // Reset if user is already logged in or on login/register page
+        return true; // User is logged in
+    }
+
+    // Attach login guards to interactive elements on index.html
+    if (document.body.contains(userInput) && document.body.contains(sendButton)) { // Check if on index.html essentially
+        const uploadImageBtn = document.getElementById('uploadImageBtn');
+
+        if (userInput) {
+            userInput.addEventListener('focus', function(event) {
+                ensureUserIsLoggedIn(event, '开始对话');
+            }, true);
+        }
+        if (uploadImageBtn) {
+            uploadImageBtn.addEventListener('click', function(event) {
+                ensureUserIsLoggedIn(event, '上传图片');
+            }, true);
+        }
+        if (sendButton) {
+            // For sendButton, the actual message sending logic might also need a check, 
+            // but this click listener will attempt to redirect before that logic runs.
+            sendButton.addEventListener('click', function(event) {
+                ensureUserIsLoggedIn(event, '发送消息');
+            }, true);
+        }
+    }
+    // END: Login Guard Logic -DOMContentLoaded part
+
 });
 
 // (Make sure handleScenarioButtonClick, switchLanguage, updateScenarioPrompts (if used) are defined as before)
@@ -1170,7 +1233,7 @@ function updateUserLoginUI(userData) {
         userAuthSection.innerHTML = '';
         loginButtonContainer.style.display = 'flex'; // Show the Google login button
     }
-}
+} 
 
 // MODIFIED show/hide functions
 function showImageControls() {
@@ -1192,3 +1255,33 @@ function hideImageControls() {
     // as the options container is the direct child now.
 }
 // <<<< END MODIFIED FUNCTIONS >>>> 
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Attach login guards to interactive elements only if they exist on the current page (primarily for index.html)
+    const guardedUserInput = document.getElementById('userInput');
+    const guardedUploadButton = document.getElementById('uploadImageBtn'); // ID from index.html
+    const guardedSendButton = document.getElementById('sendButton');
+
+    if (guardedUserInput) {
+        guardedUserInput.addEventListener('focus', function(event) {
+            // Check if the function exists to prevent errors if main.js loads before auth.js somehow, though unlikely
+            if (typeof ensureUserIsLoggedIn === 'function') {
+                ensureUserIsLoggedIn(event, '开始对话');
+            }
+        }, true);
+    }
+    if (guardedUploadButton) {
+        guardedUploadButton.addEventListener('click', function(event) {
+            if (typeof ensureUserIsLoggedIn === 'function') {
+                ensureUserIsLoggedIn(event, '上传图片');
+            }
+        }, true);
+    }
+    if (guardedSendButton) {
+        guardedSendButton.addEventListener('click', function(event) {
+            if (typeof ensureUserIsLoggedIn === 'function') {
+                ensureUserIsLoggedIn(event, '发送消息');
+            }
+        }, true);
+    }
+}); 

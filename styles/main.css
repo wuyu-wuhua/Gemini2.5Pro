@@ -473,39 +473,66 @@ header {
 
 .chat-input {
     display: flex;
-    padding: 15px 20px; /* Padding around input elements */
+    align-items: center; /* Vertically align items */
+    padding: 10px 15px; /* Adjusted padding */
     background-color: white;
-    border-bottom-left-radius: 12px; /* Match container rounding */
-    border-bottom-right-radius: 12px;/* Match container rounding */
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    gap: 10px; /* Add gap between elements */
+}
+
+.chat-upload-btn {
+    width: 44px; /* Slightly smaller */
+    height: 44px; /* Slightly smaller */
+    border-radius: 50%;
+    background-color: #f0f0f0;
+    color: var(--primary-color);
+    /* margin-right: 10px; Removed, using gap on parent */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem; /* Adjusted icon size */
+    border: 1px solid var(--border-color);
+    flex-shrink: 0; /* Prevent shrinking */
+}
+
+.chat-upload-btn:hover {
+    background-color: #e9e9e9;
+    border-color: #ccc;
 }
 
 .chat-input textarea {
     flex-grow: 1;
     border: 1px solid var(--border-color);
-    border-radius: 6px;
-    padding: 10px 15px;
+    border-radius: 22px; /* Rounded to match button height */
+    padding: 12px 18px; /* Adjusted padding */
     font-size: 1rem;
     resize: none;
-    min-height: 45px; /* Minimum height for one line */
-    max-height: 150px; /* Maximum height for a few lines */
-    overflow-y: auto; /* Add scroll if content exceeds max-height */
-    line-height: 1.4;
-    background-color: #fff; /* Ensure textarea has a background */
+    min-height: 44px; /* Match button height */
+    max-height: 150px;
+    overflow-y: auto;
+    line-height: 1.4; /* Adjusted line height */
+    background-color: #fff;
+    outline: none;
+    font-family: inherit;
+    height: 44px; /* Initial height, can grow with content up to max-height */
 }
 
-.chat-input button {
-    width: 50px;
-    height: 50px;
+#sendButton { /* Targeting by ID */
+    width: 44px; /* Slightly smaller */
+    height: 44px; /* Slightly smaller */
     border-radius: 50%;
     background-color: var(--primary-color);
     color: white;
-    margin-left: 10px;
+    /* margin-left: 10px; Removed, using gap on parent */
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0; /* Prevent shrinking */
+    font-size: 1.1rem; /* For icon inside if any */
 }
 
-.chat-input button:hover {
+#sendButton:hover {
     background-color: var(--secondary-color);
 }
 
@@ -1302,15 +1329,6 @@ footer {
     padding: 20px; 
 }
 
-/* Chat Input - Ensure padding within chat container */
-.chat-input {
-    display: flex;
-    padding: 15px 20px; /* Padding around input elements */
-    background-color: white;
-    border-bottom-left-radius: 12px; /* Match container rounding */
-    border-bottom-right-radius: 12px;/* Match container rounding */
-}
-
 /* Styles for tabbed content sections */
 .content-section {
     display: none; /* Default to hidden */
@@ -1436,7 +1454,7 @@ body > footer {
     padding: 12px 20px;
     font-size: 1rem;
     resize: none;
-    height: 50px;
+    height: 130px;
     outline: none;
     font-family: inherit;
 }
@@ -1622,4 +1640,63 @@ body > footer {
 
 .chat-input {
 /* ... existing code ... */
+}
+
+.footer-top-line {
+    display: flex;
+    justify-content: center; /* 居中对齐 */
+    align-items: center;
+    gap: 25px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    border-bottom: 1px solid #3a3a5e;
+    padding-bottom: 10px;
+    flex-wrap: wrap; /* 在小屏幕上允许换行 */
+}
+
+.footer-top-line a {
+    color: #e0e0e0;
+    text-decoration: none;
+}
+
+.footer-top-line a:hover {
+    text-decoration: underline;
+}
+
+.footer-bottom-line {
+    display: flex;
+    justify-content: center; /* 居中对齐 */
+    align-items: center;
+    gap: 25px;
+    font-size: 14px;
+    flex-wrap: wrap; /* 在小屏幕上允许换行 */
+}
+
+.footer-bottom-line a {
+    color: #e0e0e0;
+    text-decoration: none;
+}
+
+.footer-bottom-line a:hover {
+    text-decoration: underline;
+}
+
+.site-footer p {
+    text-align: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.site-footer p:last-child {
+    margin-bottom: 0;
+}
+.site-footer {
+    padding: 20px;
+    background-color: #1a1a2e;
+    color: #e0e0e0;
+    border-top: 1px solid #3a3a5e;
+    width: 100%; /* Adjusted for main content area */      /* Adjusted for main content area */
+    flex-shrink: 0;
+    text-align: center;
+    position: relative;
 }

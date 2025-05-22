@@ -251,7 +251,23 @@ const translations = {
         "passwordRegPlaceholder": "密码 (至少6位)",
         "confirmPasswordPlaceholder": "确认密码",
         "registerButtonText": "注册",
-        "alreadyAccountPrompt": "已有账户？点击登录"
+        "alreadyAccountPrompt": "已有账户？点击登录",
+        "htmlTitle": "Gemini 2.5 Pro中文版 | 国内高速访问与AI模型下载",
+
+        // Profile Page Specific (already added in previous steps, ensure they are here)
+        "profilePageTitle": "用户信息 - Gemini 2.5 Pro",
+        "userProfileTitle": "用户信息",
+        "profileLabelName": "用户名称:",
+        "profileLabelEmail": "用户邮箱:",
+        "profileLabelGoogleID": "Google ID:",
+        "profileBackToHome": "返回首页",
+
+        // User Dropdown Menu Items (NEW)
+        "profileLabelViewInfo": "查看用户信息",
+        "profileLabelLogout": "退出登录",
+
+        "all-history-cleared-message": "所有历史记录已清空。",
+        "clear-all-history-tooltip": "清空所有历史记录"
     },
     
     // 英文翻译
@@ -500,7 +516,23 @@ const translations = {
         "passwordRegPlaceholder": "Password (at least 6 characters)",
         "confirmPasswordPlaceholder": "Confirm Password",
         "registerButtonText": "Register",
-        "alreadyAccountPrompt": "Already have an account? Login"
+        "alreadyAccountPrompt": "Already have an account? Login",
+        "htmlTitle": "Gemini 2.5 Pro | High-Speed Access & AI Model Download",
+
+        // Profile Page Specific (already added, ensure they are here)
+        "profilePageTitle": "User Profile - Gemini 2.5 Pro",
+        "userProfileTitle": "User Information",
+        "profileLabelName": "User Name:",
+        "profileLabelEmail": "Email:",
+        "profileLabelGoogleID": "Google ID:",
+        "profileBackToHome": "Back to Home",
+
+        // User Dropdown Menu Items (NEW)
+        "profileLabelViewInfo": "View User Info",
+        "profileLabelLogout": "Logout",
+
+        "all-history-cleared-message": "All chat history has been cleared.",
+        "clear-all-history-tooltip": "Clear all history"
     }
 };
 

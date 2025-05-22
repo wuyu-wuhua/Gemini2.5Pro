@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini 2.5 Pro中文版 | 用户评价</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="icon" type="image/png" href="images/制作网站图标.png">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Gemini 2.5 Pro</h1>
+            <p class="subtitle" data-i18n="subtitle">GEMINI模型-Gemini 2.5 Pro最新版-在线体验</p>
+            <nav>
+                <ul class="nav-links">
+                    <li><a href="index.html" data-i18n="nav-chat">对话</a></li>
+                    <li><a href="capabilities.html" data-i18n="nav-capabilities">能力介绍</a></li>
+                    <li><a href="reviews.html" class="active" data-i18n="nav-reviews">用户评价</a></li>
+                </ul>
+                <div class="language-switch">
+                    <button class="lang-btn active" data-lang="zh">中文</button>
+                    <span class="divider">|</span>
+                    <button class="lang-btn" data-lang="en">English</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="main-layout"> 
+            <aside class="sidebar">
+                <div id="user-auth-section" class="sidebar-item" style="display: none;">
+                    <!-- Content will be populated by js/auth.js -->
+                </div>
+                <div class="sidebar-item" data-tab="login">
+                    <a href="login.html" class="sidebar-link login-button-style">
+                        <i class="fas fa-arrow-right-to-bracket"></i>
+                        <span data-i18n="menu-login">点击登录</span>
+                    </a>
+                </div>
+                <div class="sidebar-menu">
+                    <div class="sidebar-item" data-tab="chat">
+                        <a href="index.html" class="sidebar-link">
+                            <i class="fas fa-comments"></i>
+                            <span data-i18n="menu-chat">对话</span>
+                        </a>
+                    </div>
+                    <div class="sidebar-item active" data-tab="reviews"> 
+                        <a href="reviews.html" class="sidebar-link">
+                           <i class="fas fa-star"></i> 
+                           <span data-i18n="nav-reviews">用户评价</span>
+                        </a>
+                    </div>
+                    <div class="sidebar-item" data-tab="capabilities">
+                         <a href="capabilities.html" class="sidebar-link">
+                            <i class="fas fa-lightbulb"></i>
+                            <span data-i18n="menu-capabilities">核心功能</span>
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="main-content">
+                <div class="container">
+                    <section class="reviews-section">
+                        <h2 data-i18n="user-reviews">用户真实评价</h2>
+                        <div class="review-filter">
+                            <button class="filter-btn active" data-filter="all" data-i18n="filter-all">全部评价</button>
+                            <button class="filter-btn" data-filter="coding" data-i18n="filter-coding">编程能力</button>
+                            <button class="filter-btn" data-filter="understanding" data-i18n="filter-understanding">理解能力</button>
+                            <button class="filter-btn" data-filter="image" data-i18n="filter-image">图像处理</button>
+                        </div>
+
+                        <div class="reviews-container">
+                            <!-- 编程能力评价 -->
+                            <div class="review-card" data-category="coding">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user1.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-1">李工程师</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-15</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-1">作为一名资深开发者，我对Gemini 2.5 Pro的代码能力印象深刻。它不仅能生成高质量的代码，还能理解复杂的系统架构，并提供有价值的重构建议。它帮我解决了一个困扰了几天的并发问题，分析得非常透彻。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-coding-assistant">编程助手</span>
+                                    <span class="tag" data-i18n="tag-debugging">代码调试</span>
+                                    <span class="tag" data-i18n="tag-system-design">系统设计</span>
+                                </div>
+                            </div>
+
+                            <div class="review-card" data-category="coding">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user2.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-2">张程序员</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star-half-alt"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-10</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-2">Gemini 2.5 Pro在多语言编程方面表现出色。我用它生成了Python、JavaScript和Rust代码，质量都很高。特别是它对算法优化的建议，帮我将一个O(n²)的算法优化到了O(n log n)，性能提升明显。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-algorithm">算法优化</span>
+                                    <span class="tag" data-i18n="tag-multilingual">多语言支持</span>
+                                </div>
+                            </div>
+
+                            <!-- 理解能力评价 -->
+                            <div class="review-card" data-category="understanding">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user3.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-3">王研究员</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-18</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-3">作为一名科研工作者，我经常需要处理复杂的学术文献。Gemini 2.5 Pro对专业领域知识的理解令人惊叹，它能准确总结论文要点，甚至指出其中的创新点和局限性。它的推理能力接近专家水平，为我的研究提供了很大帮助。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-research">学术研究</span>
+                                    <span class="tag" data-i18n="tag-expertise">专业知识</span>
+                                    <span class="tag" data-i18n="tag-reasoning">逻辑推理</span>
+                                </div>
+                            </div>
+
+                            <div class="review-card" data-category="understanding">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user4.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-4">刘教师</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="far fa-star"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-05</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-4">我在教学中使用Gemini 2.5 Pro辅助备课和答疑。它能根据学生的不同理解水平调整解释方式，将复杂概念简化为易懂的比喻。它对问题的理解非常准确，即使是含糊不清的提问也能把握核心意图。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-education">教育辅助</span>
+                                    <span class="tag" data-i18n="tag-explanation">概念解释</span>
+                                </div>
+                            </div>
+
+                            <!-- 图像处理评价 -->
+                            <div class="review-card" data-category="image">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user5.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-5">陈设计师</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star-half-alt"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-20</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-5">Gemini 2.5 Pro的图像理解能力非常强大。我上传了一些设计草图，它不仅能准确描述内容，还能给出专业的设计建议和改进方向。它甚至能识别图像中的设计风格和参考元素，这对我的创作过程很有帮助。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-image-analysis">图像分析</span>
+                                    <span class="tag" data-i18n="tag-design">设计辅助</span>
+                                    <span class="tag" data-i18n="tag-creative">创意建议</span>
+                                </div>
+                            </div>
+
+                            <div class="review-card" data-category="image">
+                                <div class="review-header">
+                                    <div class="reviewer">
+                                        <img src="images/user6.png" alt="用户头像" onerror="this.src='https://placehold.co/50x50?text=用户'">
+                                        <div class="reviewer-info">
+                                            <h4 data-i18n="reviewer-6">赵医生</h4>
+                                            <div class="rating">
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                                <i class="fas fa-star"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span class="review-date">2024-05-12</span>
+                                </div>
+                                <p class="review-content" data-i18n="review-6">在医学影像辅助分析方面，Gemini 2.5 Pro表现出色。它能从X光片和CT图像中识别出关键特征，并提供初步的分析意见。虽然不能替代专业诊断，但作为辅助工具，它的准确性和详细程度令人印象深刻。</p>
+                                <div class="review-tags">
+                                    <span class="tag" data-i18n="tag-medical">医学影像</span>
+                                    <span class="tag" data-i18n="tag-analysis">专业分析</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section class="rating-summary">
+                        <h2 data-i18n="overall-rating">综合评分</h2>
+                        <div class="rating-overview">
+                            <div class="overall-rating">
+                                <div class="rating-number">4.8</div>
+                                <div class="rating-stars">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star-half-alt"></i>
+                                </div>
+                                <div class="rating-count" data-i18n="rating-count" data-i18n-params="1245">基于 1,245 条评价</div>
+                            </div>
+                            <div class="rating-breakdown">
+                                <div class="rating-item">
+                                    <span class="rating-label" data-i18n="rating-coding">编程能力</span>
+                                    <div class="rating-bar-container">
+                                        <div class="rating-bar" style="width: 94%"></div>
+                                    </div>
+                                    <span class="rating-value">4.7</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span class="rating-label" data-i18n="rating-understanding">理解能力</span>
+                                    <div class="rating-bar-container">
+                                        <div class="rating-bar" style="width: 96%"></div>
+                                    </div>
+                                    <span class="rating-value">4.8</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span class="rating-label" data-i18n="rating-image">图像处理</span>
+                                    <div class="rating-bar-container">
+                                        <div class="rating-bar" style="width: 90%"></div>
+                                    </div>
+                                    <span class="rating-value">4.5</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span class="rating-label" data-i18n="rating-speed">响应速度</span>
+                                    <div class="rating-bar-container">
+                                        <div class="rating-bar" style="width: 98%"></div>
+                                    </div>
+                                    <span class="rating-value">4.9</span>
+                                </div>
+                                <div class="rating-item">
+                                    <span class="rating-label" data-i18n="rating-creative">创意能力</span>
+                                    <div class="rating-bar-container">
+                                        <div class="rating-bar" style="width: 92%"></div>
+                                    </div>
+                                    <span class="rating-value">4.6</span>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="site-footer">
+        <div class="footer-top-line">
+            <a href="https://beian.miit.gov.cn" target="_blank" rel="nofollow" data-translate-key="icpRecord">渝ICP备2025053282号</a>
+            <p><span data-translate-key="contactUs">联系我们</span>: ytsgabcde37@2925.com</p>
+        </div>
+        <div class="footer-bottom-line">
+            <a data-translate-key="copyrightText">内容由AI生成，无法确保真实准确，仅供参考.</a>
+            <p data-translate-key="privacyPolicy">个人信息保护规则</p>
+        </div>
+    </footer>
+
+    <script src="js/translations.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/auth.js" defer></script>
+</body>
+</html> 
