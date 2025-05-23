@@ -852,53 +852,50 @@ function switchLanguage(lang) {
             option.classList.toggle('active', option.getAttribute('data-lang') === lang);
         });
 
-        // Use setTimeout to allow current event cycle to complete before translating
-        setTimeout(() => {
-            applyTranslations(lang); // Pass the new language directly
+        applyTranslations(lang); // Pass the new language directly
 
-            // Re-render dynamic sub-prompts for active scenario using NEW lang
-            const activeScenarioButton = document.querySelector('.scenario-btn.active');
-            if (activeScenarioButton && subPromptsContainer) {
-                const scenarioKey = activeScenarioButton.getAttribute('data-scenario');
-                subPromptsContainer.innerHTML = ''; 
-                
-                const promptKeys = subPrompts[scenarioKey];
-                const trans = getSafeTranslations(); 
+        // Re-render dynamic sub-prompts for active scenario using NEW lang
+        const activeScenarioButton = document.querySelector('.scenario-btn.active');
+        if (activeScenarioButton && subPromptsContainer) {
+            const scenarioKey = activeScenarioButton.getAttribute('data-scenario');
+            subPromptsContainer.innerHTML = ''; 
+            
+            const promptKeys = subPrompts[scenarioKey];
+            const trans = getSafeTranslations(); 
 
-                if (promptKeys && trans && trans[lang]) { // Use the new 'lang' here
-                    const langPrompts = trans[lang];
-                    promptKeys.forEach(key => {
-                        const promptText = langPrompts[key];
-                        if (promptText) {
-                            const subPromptButton = document.createElement('button');
-                            subPromptButton.className = 'sub-prompt-btn';
-                            subPromptButton.textContent = promptText;
-                            subPromptButton.onclick = () => {
-                                userInput.value = promptText;
-                                userInput.focus();
-                                if (scenarioKey === 'text-to-image') {
-                                    showImageControls();
-                                }
-                            };
-                            subPromptsContainer.appendChild(subPromptButton);
-                        }
-                    });
-                }
+            if (promptKeys && trans && trans[lang]) { // Use the new 'lang' here
+                const langPrompts = trans[lang];
+                promptKeys.forEach(key => {
+                    const promptText = langPrompts[key];
+                    if (promptText) {
+                        const subPromptButton = document.createElement('button');
+                        subPromptButton.className = 'sub-prompt-btn';
+                        subPromptButton.textContent = promptText;
+                        subPromptButton.onclick = () => {
+                            userInput.value = promptText;
+                            userInput.focus();
+                            if (scenarioKey === 'text-to-image') {
+                                showImageControls();
+                            }
+                        };
+                        subPromptsContainer.appendChild(subPromptButton);
+                    }
+                });
             }
+        }
 
-            // Update history list titles (uses localStorage, which is now NEW lang)
-            if (sidebarContentHost && sidebarContentHost.style.display !== 'none') {
-                displayChatHistoryList();
-            }
+        // Update history list titles (uses localStorage, which is now NEW lang)
+        if (sidebarContentHost && sidebarContentHost.style.display !== 'none') {
+            displayChatHistoryList();
+        }
 
-            // Update welcome message in chat using NEW lang
-            if (chatMessages && chatMessages.children.length === 1 && chatMessages.children[0].classList.contains('ai-message')) {
-                const trans = getSafeTranslations();
-                const welcomeText = trans[lang] ? trans[lang]['welcome-message'] : (lang === 'zh' ? '你好！' : 'Hello!');
-                chatMessages.innerHTML = ''; 
-                addMessage(welcomeText, 'ai', true);
-            }
-        }, 0); // End of setTimeout block
+        // Update welcome message in chat using NEW lang
+        if (chatMessages && chatMessages.children.length === 1 && chatMessages.children[0].classList.contains('ai-message')) {
+            const trans = getSafeTranslations();
+            const welcomeText = trans[lang] ? trans[lang]['welcome-message'] : (lang === 'zh' ? '你好！' : 'Hello!');
+            chatMessages.innerHTML = ''; 
+            addMessage(welcomeText, 'ai', true);
+        }
     }
 }
 
